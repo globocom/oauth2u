@@ -1,79 +1,54 @@
 import uuid
+import urllib
 
-from tornado.web import RequestHandler, Application
-from tornado.ioloop import IOLoop
-from tornado.auth import OAuth2Mixin
-from tornado.httputil import url_concat
+import tornado.web
+import tornado.ioloop
 
-class Authorize(RequestHandler):
+import oauth2u.tokens
+
+
+class AuthorizationHandler(tornado.web.RequestHandler):
+    '''
+    Handler for the Authorization Request defined in
+    http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-4.1.1
+    
+    '''
 
     def get(self):
-        self.write('<h1>Credentials</h1>')
-        self.write('<form method="post" action="'+ self.request.full_url() +'">')
-        self.write('<p>Login: <input name="username" type="text" /></p>')
-        self.write('<p>Password: <input name="password" type="password" /></p>')
-        self.write('<p><button type="submit">Send</button></p>')
-        self.write('</form>')
+        self.validate_response_type()
+        self.get_argument('client_id')
+        redirect_uri = self.get_argument('redirect_uri') # XXX
+        self.redirect_with_code(redirect_uri)
 
-    def post(self):
-        client_id = self.get_argument('client_id')
+    def redirect_with_code(self, redirect_uri):
+        params = {'code': oauth2u.tokens.generate_authorization_code()}
+        prefix = '?' if '?' not in redirect_uri else '&'
+        self.redirect(redirect_uri + prefix + urllib.urlencode(params))
 
-        if self.valid_user():
-            code = self.build_token()
-            self.redirect_with_code(code)
-        else:
-            self.write("Invalid username and/or password")
-            
-    def valid_user(self):
-        return True
+    def validate_response_type(self):
+        ''' Currently only ``code`` is supported '''
+        response_type = self.get_argument('response_type')
+        if response_type != 'code':
+            raise tornado.web.HTTPError(400, "response_type should be code")
 
-    def build_token(self):
-        return str(uuid.uuid4())
 
-    def redirect_with_code(self, code):
-        url = self.build_redirect_url(code)
-        self.redirect(url)
+class Server(object):
 
-    def build_redirect_url(self, code):
-        redirect_uri = self.get_argument('redirect_uri')
-        return url_concat(redirect_uri, {'code': code})
+    def __init__(self, port=8000):
+        self.port = port
+        self.application = None
 
-class AccessToken(RequestHandler):
+    @property
+    def urls(self):
+        return [('/authorize', AuthorizationHandler)]
 
-    def post(self):
-        import time
-        time.sleep(2)
-        if self.is_valid_code_for_client():
-            self.return_access_token()
+    def start(self):
+        self.create_application()
+        self.start_ioloop()
+
+    def create_application(self):
+        self.application = tornado.web.Application(self.urls, debug=True)
+        self.application.listen(self.port)
     
-    def is_valid_code_for_client(self):
-        # verify if the client registered for this redirect uri
-        # should be using this code
-        grant_type = self.get_argument('grant_type')
-        code = self.get_argument('code')
-        redirect_uri = self.get_argument('redirect_uri')
-        return True
-
-    def return_access_token(self):
-        response = self.build_token()
-        self.write(response)
-
-    def build_token(self):
-        return {
-            'access_token': str(uuid.uuid4()),
-            'refresh_token': str(uuid.uuid4()),
-            'expires_in': 3600,
-            }
-
-urls = (
-    (r'/authorize', Authorize),
-    (r'/access-token', AccessToken),
-)
-application = Application(urls, debug=True)
-
-
-if __name__ == '__main__':
-    port = 8008
-    application.listen(port)
-    print("Listening on {0}".format(port))
-    IOLoop.instance().start()
+    def start_ioloop(self):
+        tornado.ioloop.IOLoop.instance().start()

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+function start_test_server {
+    echo "Starting test server. Log: tests/server.log"
+    rm -f tests/server.log
+    PYTHONPATH=. python tests/helpers.py start_test_server >tests/server.log 2&>1 &
+}
+
+function run_tests {
+    start_test_server
+    PYTHONPATH=. py.test -vs tests/
+    exit_code=$?
+    stop_test_server
+    exit $exit_code
+}
+
+function stop_test_server {
+    ps ax | grep start_test_server | grep -v grep | cut -d ' ' -f 1 | xargs kill
+}
+
+run_tests
