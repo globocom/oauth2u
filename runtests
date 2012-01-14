@@ -3,7 +3,7 @@
 function start_test_server {
     echo "Starting test server. Log: tests/server.log"
     rm -f tests/server.log
-    PYTHONPATH=. python tests/helpers.py start_test_server >tests/server.log 2&>1 &
+    PYTHONPATH=. python tests/helpers.py start_test_server >tests/server.log 2>&1 &
 }
 
 function run_tests {
