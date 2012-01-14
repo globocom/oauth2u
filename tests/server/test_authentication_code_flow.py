@@ -8,8 +8,9 @@ TEST_SERVER_HOST = 'http://localhost:8888'
 # custom asserts
 
 def assert_required_argument(url, argument, method='get',
-                             message='Missing argument {0}'):
-    resp = requests.request(method, url)
+                             message='Missing argument {0}',
+                             headers=None):
+    resp = requests.request(method, url, headers=headers)
     assert 400 == resp.status_code
     assert message.format(argument) in resp.content
 
@@ -84,22 +85,35 @@ def test_should_generate_tokens_using_generate_authorization_token_function():
 # test access token request
 #
 
+content_type_header = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'}
+
+def test_should_require_content_type_header():
+    resp = requests.post(access_token_url())
+    assert 400 == resp.status_code
+    assert "Content-Type header should be application/x-www-form-urlencoded;charset=UTF-8" in resp.content
+
+
 def test_should_require_grant_type_argument():
-    assert_required_argument(access_token_url(), 'grant_type', 'post')
+    assert_required_argument(access_token_url(), 'grant_type', 'post',
+                             headers=content_type_header)
 
 
 def test_should_require_grant_type_argument_to_be_authorization_code():
     url = access_token_url({'grant_type': 'something-else'})
     assert_required_argument(url, 'grant_type', 'post',
-                             'grant_type should be authorization_code')
+                             'grant_type should be authorization_code',
+                             headers=content_type_header)
 
 
 def test_should_require_code_argument():
     url = access_token_url({'grant_type': 'authorization_code'})
-    assert_required_argument(url, 'code', 'post')
+    assert_required_argument(url, 'code', 'post',
+                             headers=content_type_header)
 
 
 def test_should_require_redirect_uri_argument():
     url = access_token_url({'grant_type': 'authorization_code',
                             'code': 'foo'})
-    assert_required_argument(url, 'redirect_uri', 'post')
+    assert_required_argument(url, 'redirect_uri', 'post',
+                             headers=content_type_header)
+

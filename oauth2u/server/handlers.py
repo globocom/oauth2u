@@ -6,7 +6,14 @@ import oauth2u.tokens
 
 class BaseRequestHandler(tornado.web.RequestHandler):
     def invalid_argument(self, message):
+        self.raise_http_400(message)
+
+    def invalid_header(self, message):
+        self.raise_http_400(message)
+
+    def raise_http_400(self, message):
         raise tornado.web.HTTPError(400, message)
+
 
 class AuthorizationHandler(tornado.web.RequestHandler):
     '''
@@ -40,8 +47,15 @@ class AccessTokenHandler(BaseRequestHandler):
 
     '''
 
+    required_content_type = "application/x-www-form-urlencoded;charset=UTF-8"
+
     def post(self):
+        self.validate_headers()
         self.load_arguments()
+
+    def validate_headers(self):
+        if self.request.headers.get('content-type') != self.required_content_type:
+            self.invalid_header("Content-Type header should be {0}".format(self.required_content_type))
 
     def load_arguments(self):
         self.grant_type = self.get_argument('grant_type')
