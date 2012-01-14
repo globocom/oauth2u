@@ -55,7 +55,8 @@ class AccessTokenHandler(BaseRequestHandler):
 
     def validate_headers(self):
         if self.request.headers.get('content-type') != self.required_content_type:
-            self.invalid_header("Content-Type header should be {0}".format(self.required_content_type))
+            self.invalid_header("Content-Type header should be {0}"
+                                .format(self.required_content_type))
 
     def load_arguments(self):
         self.grant_type = self.get_argument('grant_type')
