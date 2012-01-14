@@ -4,7 +4,7 @@ import urllib
 import tornado.web
 import tornado.ioloop
 
-from .handlers import AuthorizationHandler
+from .handlers import AuthorizationHandler, AccessTokenHandler
 
 class Server(object):
 
@@ -14,7 +14,8 @@ class Server(object):
 
     @property
     def urls(self):
-        return [('/authorize', AuthorizationHandler)]
+        return ((r'/authorize', AuthorizationHandler),
+                (r'/access-token', AccessTokenHandler))
 
     def start(self):
         self.create_application()

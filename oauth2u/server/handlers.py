@@ -4,6 +4,9 @@ import tornado
 
 import oauth2u.tokens
 
+class BaseRequestHandler(tornado.web.RequestHandler):
+    def invalid_argument(self, message):
+        raise tornado.web.HTTPError(400, message)
 
 class AuthorizationHandler(tornado.web.RequestHandler):
     '''
@@ -28,3 +31,21 @@ class AuthorizationHandler(tornado.web.RequestHandler):
         response_type = self.get_argument('response_type')
         if response_type != 'code':
             raise tornado.web.HTTPError(400, "response_type should be code")
+
+
+class AccessTokenHandler(BaseRequestHandler):
+    '''
+    Handler for the Access Token Request defined in
+    http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-4.1.3
+
+    '''
+
+    def post(self):
+        self.load_arguments()
+
+    def load_arguments(self):
+        self.grant_type = self.get_argument('grant_type')
+        if self.grant_type != 'authorization_code':
+            self.invalid_argument("grant_type should be authorization_code")
+        self.code = self.get_argument('code')
+        self.redirect_uri = self.get_argument('redirect_uri')
