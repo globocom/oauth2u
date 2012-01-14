@@ -1,8 +1,6 @@
-import uuid
 import urllib
 
-import tornado.web
-import tornado.ioloop
+import tornado
 
 import oauth2u.tokens
 
@@ -30,25 +28,3 @@ class AuthorizationHandler(tornado.web.RequestHandler):
         response_type = self.get_argument('response_type')
         if response_type != 'code':
             raise tornado.web.HTTPError(400, "response_type should be code")
-
-
-class Server(object):
-
-    def __init__(self, port=8000):
-        self.port = port
-        self.application = None
-
-    @property
-    def urls(self):
-        return [('/authorize', AuthorizationHandler)]
-
-    def start(self):
-        self.create_application()
-        self.start_ioloop()
-
-    def create_application(self):
-        self.application = tornado.web.Application(self.urls, debug=True)
-        self.application.listen(self.port)
-    
-    def start_ioloop(self):
-        tornado.ioloop.IOLoop.instance().start()
