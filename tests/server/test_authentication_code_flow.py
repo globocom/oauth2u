@@ -5,12 +5,23 @@ import requests
 
 TEST_SERVER_HOST = 'http://localhost:8888'
 
+# custom asserts
+
+def assert_required_argument(url, argument, method='get',
+                             message='Missing argument {0}'):
+    resp = requests.request(method, url)
+    assert 400 == resp.status_code
+    assert message.format(argument) in resp.content
+
+# helpers
 
 def build_url(host, path, query=None):
     query = query or {}
     return u'{0}/{1}?{2}'.format(host.rstrip('/'),
                                  path.lstrip('/'),
                                  urllib.urlencode(query))
+
+# urls used on tests
 
 authorize_url = partial(build_url, TEST_SERVER_HOST, '/authorize')
 access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')
@@ -20,21 +31,18 @@ access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')
 #
 
 def test_should_require_response_type_argument():
-    resp = requests.get(authorize_url())
-    assert 400 == resp.status_code
-    assert 'Missing argument response_type' in resp.content
+    assert_required_argument(authorize_url(), 'response_type')
 
 
 def test_should_require_client_id_argument():
-    resp = requests.get(authorize_url({'response_type': 'code'}))
-    assert 400 == resp.status_code
-    assert 'Missing argument client_id' in resp.content
+    url = authorize_url({'response_type': 'code'})
+    assert_required_argument(url, 'client_id')
 
 
 def test_should_only_allow_response_type_to_be_code():
-    resp = requests.get(authorize_url({'response_type': 'FOO'}))
-    assert 400 == resp.status_code
-    assert 'response_type should be code' in resp.content
+    url = authorize_url({'response_type': 'FOO'})
+    assert_required_argument(url, 'response_type',
+                             message='response_type should be code')
 
 
 def test_should_require_redirect_uri_argument():
@@ -95,10 +103,3 @@ def test_should_require_redirect_uri_argument():
     url = access_token_url({'grant_type': 'authorization_code',
                             'code': 'foo'})
     assert_required_argument(url, 'redirect_uri', 'post')
-
-
-def assert_required_argument(url, argument, method='get',
-                             message='Missing argument {0}'):
-    resp = requests.request(method, url)
-    assert 400 == resp.status_code
-    assert message.format(argument) in resp.content
