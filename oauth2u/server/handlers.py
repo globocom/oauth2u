@@ -9,19 +9,32 @@ import oauth2u.tokens
 
 class BaseRequestHandler(tornado.web.RequestHandler):
 
-    def require_argument(self, name, expected_value):
-        value = self.get_argument(name)
-        if value != expected_value:
-            self.invalid_argument('{0} should be {1}'.format(name, expected_value))
+    def require_argument(self, name, expected_value=None):
+        value = self.get_argument(name, None)
+        if value is None:
+            self.invalid_argument({'error': 'invalid_request',
+                                   'error_description': u'Parameter {0} is required'.format(name)})
 
-    def invalid_argument(self, message):
-        self.raise_http_400(message)
+        if expected_value and value != expected_value:
+            self.invalid_argument({'error': 'invalid_request',
+                                   'error_description': u'Parameter {0} should be {1}'.format(name, expected_value)})
+        return value
+
+    def invalid_argument(self, response_body):
+        self.raise_http_400(response_body)
 
     def invalid_header(self, message):
         self.raise_http_400(message)
 
-    def raise_http_400(self, message):
-        raise tornado.web.HTTPError(400, message)
+    def raise_http_400(self, response_body):
+        error = tornado.web.HTTPError(400, '')
+        error.response_body = response_body
+        raise error
+
+    def get_error_html(self, status_code, exception, **kwargs):
+        ''' Called by tornado to fill error response body '''
+        # if hasattr(exception, 'response_body'):
+        self.write(exception.response_body)
 
 
 class AuthorizationHandler(BaseRequestHandler):
@@ -43,8 +56,8 @@ class AuthorizationHandler(BaseRequestHandler):
         self.require_argument('response_type', 'code')
 
     def load_arguments(self):
-        self.client_id = self.get_argument('client_id')
-        self.redirect_uri = self.get_argument('redirect_uri')
+        self.client_id = self.require_argument('client_id')
+        self.redirect_uri = self.require_argument('redirect_uri')
 
     def create_authorization_token(self):
         self.code = oauth2u.tokens.generate_authorization_code()
@@ -70,19 +83,12 @@ class AccessTokenHandler(BaseRequestHandler):
         self.validate_headers()
         self.load_arguments()
         self.parse_authorization_header()
-        self.build_response()
-
-    def build_response(self):
-        self.set_header('Content-Type', 'application/json;charset=UTF-8')
-        self.write({
-                'access_token': self.build_access_token(),
-                'expires_in': 3600,
-                })
-
+        if self.valid_code():
+            self.build_response()
+                
     def validate_headers(self):
         if self.request.headers.get('content-type') != self.required_content_type:
-            self.invalid_header("Content-Type header should be {0}"
-                                .format(self.required_content_type))
+            self.raise_http_400({'error': 'invalid_request'})
 
         authorization =  self.request.headers.get('Authorization', '')
         if not authorization.startswith('Basic '):
@@ -90,13 +96,29 @@ class AccessTokenHandler(BaseRequestHandler):
 
     def load_arguments(self):
         self.require_argument('grant_type', 'authorization_code')
-        self.code = self.get_argument('code')
-        self.redirect_uri = self.get_argument('redirect_uri')
+        self.code = self.require_argument('code')
+        self.redirect_uri = self.require_argument('redirect_uri')
 
     def parse_authorization_header(self):
         digest = self.request.headers.get('Authorization')
         digest = digest.lstrip('Basic ')
         self.client_id, code = base64.b64decode(digest).split(':')
+
+    def valid_code(self):
+        authorization = database.find_authorization(self.code)
+        if not authorization:
+            self.set_header('Content-Type', 'application/json;charset=UTF-8')
+            self.write({'error': 'invalid_grant'})
+            self.set_status(400)
+            return False
+        return True
+
+    def build_response(self):
+        self.set_header('Content-Type', 'application/json;charset=UTF-8')
+        self.write({
+                'access_token': self.build_access_token(),
+                'expires_in': 3600,
+                })
 
     def build_access_token(self):
         return oauth2u.tokens.generate_access_token()

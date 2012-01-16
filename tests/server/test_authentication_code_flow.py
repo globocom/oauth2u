@@ -12,11 +12,22 @@ TEST_SERVER_HOST = 'http://localhost:8888'
 # custom asserts
 
 def assert_required_argument(url, argument, method='GET',
-                             message='Missing argument {0}',
+                             error_code=None,
+                             error_description=None,
                              headers=None):
     resp = requests.request(method, url, headers=headers)
     assert 400 == resp.status_code
-    assert message.format(argument) in resp.content
+    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+    
+    body = json.loads(resp.content)    
+    assert error_code == body['error']
+    assert error_description == body['error_description']
+
+def assert_error_response(response, error_code, status_code=400):
+    assert status_code == response.status_code
+    assert 'application/json; charset=UTF-8' == response.headers['content-type']
+    assert {'error': error_code} == json.loads(response.content)
+
 
 # helpers
 
@@ -36,18 +47,23 @@ build_access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')
 #
 
 def test_should_require_response_type_argument():
-    assert_required_argument(build_authorize_url(), 'response_type')
+    assert_required_argument(build_authorize_url(), 'response_type',
+                             error_code='invalid_request',
+                             error_description='Parameter response_type is required')
+
+
+def test_should_require_response_type_argument_to_be_code():
+    assert_required_argument(build_authorize_url({'response_type': 'invalid'}),
+                             'response_type',
+                             error_code='invalid_request',
+                             error_description='Parameter response_type should be code')
 
 
 def test_should_require_client_id_argument():
     url = build_authorize_url({'response_type': 'code'})
-    assert_required_argument(url, 'client_id')
-
-
-def test_should_only_allow_response_type_to_be_code():
-    url = build_authorize_url({'response_type': 'FOO'})
-    assert_required_argument(url, 'response_type',
-                             message='response_type should be code')
+    assert_required_argument(url, 'client_id',
+                             error_code='invalid_request',
+                             error_description='Parameter client_id is required')
 
 
 def test_should_require_redirect_uri_argument():
@@ -60,8 +76,8 @@ def test_should_require_redirect_uri_argument():
 
 def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
     url = build_authorize_url({'client_id': '123',
-                         'response_type': 'code',
-                         'redirect_uri': 'http://callback'})
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
     resp = requests.get(url, allow_redirects=False)
     assert 302 == resp.status_code
     assert resp.headers['Location'].startswith('http://callback?code=')
@@ -97,7 +113,7 @@ headers = {
 def test_should_require_content_type_header():
     resp = requests.post(build_access_token_url())
     assert 400 == resp.status_code
-    assert "Content-Type header should be application/x-www-form-urlencoded;charset=UTF-8" in resp.content
+    assert_error_response(resp, 'invalid_request')
 
 
 def test_should_require_authorization_header():
@@ -118,26 +134,33 @@ def test_authorization_header_should_be_basic():
 
 def test_should_require_grant_type_argument():
     assert_required_argument(build_access_token_url(), 'grant_type', 'POST',
+                             error_code='invalid_request',
+                             error_description='Parameter grant_type is required',
                              headers=headers)
 
 
 def test_should_require_grant_type_argument_to_be_authorization_code():
     url = build_access_token_url({'grant_type': 'something-else'})
     assert_required_argument(url, 'grant_type', 'POST',
-                             'grant_type should be authorization_code',
+                             error_code='invalid_request',
+                             error_description='Parameter grant_type should be authorization_code',
                              headers=headers)
 
 
 def test_should_require_code_argument():
     url = build_access_token_url({'grant_type': 'authorization_code'})
     assert_required_argument(url, 'code', 'POST',
+                             error_code='invalid_request',
+                             error_description='Parameter code is required',
                              headers=headers)
 
 
 def test_should_require_redirect_uri_argument():
     url = build_access_token_url({'grant_type': 'authorization_code',
-                            'code': 'foo'})
+                                  'code': 'foo'})
     assert_required_argument(url, 'redirect_uri', 'POST',
+                             error_code='invalid_request',
+                             error_description='Parameter redirect_uri is required',
                              headers=headers)
 
 def test_should_return_access_token_if_valid_authorization_code():
@@ -167,9 +190,40 @@ def test_should_validate_authorization_header_base64_format():
     assert 0
 
 
-@pytest.mark.xfail
-def test_should_validate_client_id_and_authorization_code_and_redirect_uri():
-    assert 0
+def test_should_return_invalid_grant_error_if_code_is_invalid():
+    client_id = 'client1'
+    code = request_authorization_code(client_id)
+
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': 'INVALID-CODE',
+                                  'redirect_uri': 'http://callback'})
+
+    valid_headers = headers.copy()
+    valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
+
+    resp = requests.post(url, headers=valid_headers)
+
+    assert 400 == resp.status_code
+    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+    assert {'error': 'invalid_grant'} == json.loads(resp.content)
+
+
+# def test_should_return_invalid_grant_error_if_code_is_invalid():
+#     client_id = 'client1'
+#     code = request_authorization_code(client_id)
+
+#     url = build_access_token_url({'grant_type': 'authorization_code',
+#                                   'code': 'INVALID-CODE',
+#                                   'redirect_uri': 'http://callback'})
+
+#     valid_headers = headers.copy()
+#     valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
+
+#     resp = requests.post(url, headers=valid_headers)
+
+#     assert 400 == resp.status_code
+#     assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+#     assert {'error': 'invalid_grant'} == json.loads(resp.content)
 
 
 
