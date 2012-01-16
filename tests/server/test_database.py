@@ -8,8 +8,8 @@ def test_find_should_return_none_if_no_authorization_is_created():
 
 
 def test_should_be_able_to_save_and_retrieve_authorizations():
-    database.new_authorization(code='1234', client_id='client1',
-                               redirect_uri='http://callback/return')
+    database.save_authorization(code='1234', client_id='client1',
+                                redirect_uri='http://callback/return')
 
     auth = database.find_authorization(code='1234')
 

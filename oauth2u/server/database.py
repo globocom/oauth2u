@@ -1,7 +1,7 @@
 AUTHORIZATIONS = {}
 
 
-def new_authorization(code, client_id, redirect_uri):
+def save_authorization(code, client_id, redirect_uri):
     AUTHORIZATIONS[code] = {'client_id': client_id, 'redirect_uri': redirect_uri}
 
 

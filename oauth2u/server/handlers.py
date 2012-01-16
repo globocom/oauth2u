@@ -8,6 +8,12 @@ from oauth2u.server import database
 import oauth2u.tokens
 
 class BaseRequestHandler(tornado.web.RequestHandler):
+
+    def require_argument(self, name, expected_value):
+        value = self.get_argument(name)
+        if value != expected_value:
+            self.invalid_argument('{0} should be {1}'.format(name, expected_value))
+
     def invalid_argument(self, message):
         self.raise_http_400(message)
 
@@ -18,7 +24,7 @@ class BaseRequestHandler(tornado.web.RequestHandler):
         raise tornado.web.HTTPError(400, message)
 
 
-class AuthorizationHandler(tornado.web.RequestHandler):
+class AuthorizationHandler(BaseRequestHandler):
     '''
     Handler for the Authorization Request defined in
     http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-4.1.1
@@ -26,29 +32,30 @@ class AuthorizationHandler(tornado.web.RequestHandler):
     '''
 
     def get(self):
-        self.validate_response_type()
-        client_id = self.get_argument('client_id')
-        redirect_uri = self.get_argument('redirect_uri')
-        code = self.create_code()
-        self.redirect_with_code(code, redirect_uri)
-        self.save_code(client_id, code, redirect_uri)
+        self.validate_arguments()
+        self.load_arguments()
+        self.create_authorization_token()
+        self.redirect_with_token()
+        self.save_authorization_token()
 
-    def validate_response_type(self):
+    def validate_arguments(self):
         ''' Currently only ``code`` is supported '''
-        response_type = self.get_argument('response_type')
-        if response_type != 'code':
-            raise tornado.web.HTTPError(400, "response_type should be code")
+        self.require_argument('response_type', 'code')
 
-    def create_code(self):
-        return oauth2u.tokens.generate_authorization_code()
+    def load_arguments(self):
+        self.client_id = self.get_argument('client_id')
+        self.redirect_uri = self.get_argument('redirect_uri')
 
-    def redirect_with_code(self, code, redirect_uri):
-        params = {'code': code}
-        prefix = '?' if '?' not in redirect_uri else '&'
-        self.redirect(redirect_uri + prefix + urllib.urlencode(params))
+    def create_authorization_token(self):
+        self.code = oauth2u.tokens.generate_authorization_code()
 
-    def save_code(self, code, client_id, redirect_uri):
-        database.new_authorization(code, client_id, redirect_uri)
+    def redirect_with_token(self):
+        params = {'code': self.code}
+        prefix = '?' if '?' not in self.redirect_uri else '&'
+        self.redirect(self.redirect_uri + prefix + urllib.urlencode(params))
+
+    def save_authorization_token(self):
+        database.save_authorization(self.code, self.client_id, self.redirect_uri)
 
 class AccessTokenHandler(BaseRequestHandler):
     '''
@@ -82,9 +89,7 @@ class AccessTokenHandler(BaseRequestHandler):
             self.invalid_header("Basic Authorization header is required")
 
     def load_arguments(self):
-        self.grant_type = self.get_argument('grant_type')
-        if self.grant_type != 'authorization_code':
-            self.invalid_argument("grant_type should be authorization_code")
+        self.require_argument('grant_type', 'authorization_code')
         self.code = self.get_argument('code')
         self.redirect_uri = self.get_argument('redirect_uri')
 
