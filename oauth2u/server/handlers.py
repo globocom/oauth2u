@@ -93,8 +93,8 @@ class AccessTokenHandler(BaseRequestHandler):
         self.validate_headers()
         self.load_arguments()
         self.parse_authorization_header()
-        if self.valid_code():
-            self.build_response()
+        self.validate_authorization()
+        self.build_response()
                 
     def validate_headers(self):
         self.require_header('content-type', self.required_content_type)
@@ -110,14 +110,14 @@ class AccessTokenHandler(BaseRequestHandler):
         digest = digest.lstrip('Basic ')
         self.client_id, code = base64.b64decode(digest).split(':')
 
-    def valid_code(self):
+    def validate_authorization(self):
         authorization = database.find_authorization(self.code)
         if not authorization:
-            self.set_header('Content-Type', 'application/json;charset=UTF-8')
-            self.write({'error': 'invalid_grant'})
-            self.set_status(400)
-            return False
-        return True
+            self.raise_http_400({'error': 'invalid_grant',
+                                 'error_description': 'Code not found'})
+        if authorization['redirect_uri'] != self.redirect_uri:
+            self.raise_http_400({'error': 'invalid_grant',
+                                 'error_description': 'redirect_uri does not match'})
 
     def build_response(self):
         self.set_header('Content-Type', 'application/json;charset=UTF-8')

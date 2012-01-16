@@ -37,8 +37,14 @@ def assert_header_starts_with(url, header, startswith, method='GET', headers=Non
 
 
 def assert_invalid_request(url, error_description, method, headers):
-    error_code = 'invalid_request'
+    assert_error_response(url, 'invalid_request', error_description, method, headers)
 
+
+def assert_invalid_grant(url, error_description, method, headers):
+    assert_error_response(url, 'invalid_grant', error_description, method, headers)
+
+
+def assert_error_response(url, error_code, error_description, method, headers):
     resp = requests.request(method, url, headers=headers)
     assert 400 == resp.status_code
     assert 'application/json; charset=UTF-8' == resp.headers['content-type']
@@ -49,6 +55,23 @@ def assert_invalid_request(url, error_description, method, headers):
 
 
 # helpers
+
+def request_authorization_code(client_id='123',
+                               redirect_uri='http://callback'):
+    url = build_authorize_url({'client_id': client_id,
+                               'response_type': 'code',
+                               'redirect_uri': redirect_uri})
+    resp = requests.get(url, allow_redirects=False)
+    code = get_code_from_url(resp.headers['Location'])
+    return code
+
+def get_code_from_url(url):
+    query = dict(cgi.parse_qsl(url.split('?')[1]))
+    return query['code']
+
+def build_basic_authorization_header(client_id, code):
+    digest = base64.b64encode('{0}:{1}'.format(client_id, code))
+    return 'Basic {0}'.format(digest)
 
 def build_url(host, path, query=None):
     query = query or {}
@@ -212,15 +235,11 @@ def test_should_return_invalid_grant_error_if_code_not_found():
                                   'code': 'INVALID-CODE',
                                   'redirect_uri': 'http://callback'})
 
-    valid_headers = headers.copy()
-    valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
-
-    resp = requests.post(url, headers=valid_headers)
-
-    assert 400 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-    assert {'error': 'invalid_grant',
-            'error_description': 'Code not found'} == json.loads(resp.content)
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header(client_id, code)
+        }
+    assert_invalid_grant(url, 'Code not found', 'POST', headers)
 
 
 def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
@@ -229,34 +248,10 @@ def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
 
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': code,
-                                  'redirect_uri': 'http://callback'})
+                                  'redirect_uri': 'http://callback'}) # different uri
 
-    valid_headers = headers.copy()
-    valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
-
-    resp = requests.post(url, headers=valid_headers)
-
-    assert 400 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-    assert {'error': 'invalid_grant',
-            'error_description': 'redirect_uri does not match'} == json.loads(resp.content)
-
-
-
-def request_authorization_code(client_id='123',
-                               redirect_uri='http://callback'):
-    url = build_authorize_url({'client_id': client_id,
-                               'response_type': 'code',
-                               'redirect_uri': redirect_uri})
-    resp = requests.get(url, allow_redirects=False)
-    code = get_code_from_url(resp.headers['Location'])
-    return code
-
-def get_code_from_url(url):
-    query = dict(cgi.parse_qsl(url.split('?')[1]))
-    return query['code']
-
-
-def build_basic_authorization_header(client_id, code):
-    digest = base64.b64encode('{0}:{1}'.format(client_id, code))
-    return 'Basic {0}'.format(digest)
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header(client_id, code)
+        }
+    assert_invalid_grant(url, 'redirect_uri does not match', 'POST', headers)
