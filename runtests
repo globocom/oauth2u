@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function install_test_deps {
+    pip install pytest requests
+}
+
 function start_test_server {
     echo "Starting test server. Log: tests/server.log"
     rm -f tests/server.log
@@ -7,6 +11,7 @@ function start_test_server {
 }
 
 function run_tests {
+    install_test_deps
     start_test_server
     PYTHONPATH=. py.test -vs tests/
     exit_code=$?
