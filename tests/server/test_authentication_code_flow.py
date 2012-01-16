@@ -23,7 +23,6 @@ def assert_required_argument(url, argument, method='GET', headers=None):
     assert error_code == body['error']
     assert error_description == body['error_description']
 
-
 def assert_argument_value(url, argument, value, method='GET', headers=None):
     error_code = 'invalid_request'
     error_description = 'Parameter {0} should be {1}'.format(argument, value)
@@ -36,11 +35,43 @@ def assert_argument_value(url, argument, value, method='GET', headers=None):
     assert error_code == body['error']
     assert error_description == body['error_description']
 
+def assert_required_header(url, header, method='GET', headers=None):
+    error_code = 'invalid_request'
+    error_description = 'Header {0} is required'.format(header)
 
-def assert_error_response(response, error_code, status_code=400):
-    assert status_code == response.status_code
-    assert 'application/json; charset=UTF-8' == response.headers['content-type']
-    assert {'error': error_code} == json.loads(response.content)
+    resp = requests.request(method, url, headers=headers)
+    assert 400 == resp.status_code
+    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+
+    body = json.loads(resp.content)
+    assert error_code == body['error']
+    assert error_description == body['error_description']
+
+
+def assert_header_value(url, header, value, method='GET', headers=None):
+    error_code = 'invalid_request'
+    error_description = 'Header {0} should be {1}'.format(header, value)
+
+    resp = requests.request(method, url, headers=headers)
+    assert 400 == resp.status_code
+    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+
+    body = json.loads(resp.content)
+    assert error_code == body['error']
+    assert error_description == body['error_description']
+
+
+def assert_header_starts_with(url, header, startswith, method='GET', headers=None):
+    error_code = 'invalid_request'
+    error_description = 'Header {0} should start with "{1}"'.format(header, startswith)
+
+    resp = requests.request(method, url, headers=headers)
+    assert 400 == resp.status_code
+    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+
+    body = json.loads(resp.content)
+    assert error_code == body['error']
+    assert error_description == body['error_description']
 
 
 # helpers
@@ -118,25 +149,35 @@ headers = {
     }
 
 def test_should_require_content_type_header():
-    resp = requests.post(build_access_token_url())
-    assert 400 == resp.status_code
-    assert_error_response(resp, 'invalid_request')
+    assert_required_header(build_access_token_url(), 'content-type', 'POST')
+
+
+def test_should_require_content_type_header_to_be_x_wwww_form_urlencoded():
+    url = build_access_token_url()
+    invalid_headers = {'Content-Type': 'text/plain'}
+
+    assert_header_value(build_access_token_url(),
+                        'content-type',
+                        'application/x-www-form-urlencoded;charset=UTF-8',
+                        'POST',
+                        invalid_headers)
 
 
 def test_should_require_authorization_header():
-    invalid_headers = headers.copy()
-    invalid_headers.pop('Authorization')
-    resp = requests.post(build_access_token_url(), headers=invalid_headers)
-    assert 400 == resp.status_code
-    assert "Basic Authorization header is required" in resp.content
+    invalid_headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'}
+    assert_required_header(build_access_token_url(), 'authorization',
+                           'POST',
+                           headers=invalid_headers)
 
 
 def test_authorization_header_should_be_basic():
-    invalid_headers = headers.copy()
-    invalid_headers['Authorization'] = 'Invalid andlksndklnd'
-    resp = requests.post(build_access_token_url(), headers=invalid_headers)
-    assert 400 == resp.status_code
-    assert "Basic Authorization header is required" in resp.content
+    invalid_headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                       'Authorization': 'Invalid asdf'}
+
+    assert_header_starts_with(build_access_token_url(), 'authorization',
+                              'Basic ',
+                              'POST',
+                              headers=invalid_headers)
 
 
 def test_should_require_grant_type_argument():
