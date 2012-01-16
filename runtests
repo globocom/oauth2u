@@ -20,7 +20,12 @@ function run_tests {
 }
 
 function stop_test_server {
+	echo "Stop test server..."
     ps ax | grep start_test_server | grep -v grep | cut -d ' ' -f 1 | xargs kill
 }
 
-run_tests $@
+if [ -z "$1" ]; then
+	run_tests $@
+else
+	$@ 
+fi
