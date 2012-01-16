@@ -204,7 +204,7 @@ def test_should_validate_authorization_header_base64_format():
     assert 0
 
 
-def test_should_return_invalid_grant_error_if_code_is_invalid():
+def test_should_return_invalid_grant_error_if_code_not_found():
     client_id = 'client1'
     code = request_authorization_code(client_id)
 
@@ -219,32 +219,35 @@ def test_should_return_invalid_grant_error_if_code_is_invalid():
 
     assert 400 == resp.status_code
     assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-    assert {'error': 'invalid_grant'} == json.loads(resp.content)
+    assert {'error': 'invalid_grant',
+            'error_description': 'Code not found'} == json.loads(resp.content)
 
 
-# def test_should_return_invalid_grant_error_if_code_is_invalid():
-#     client_id = 'client1'
-#     code = request_authorization_code(client_id)
+def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
+    client_id = 'client1'
+    code = request_authorization_code(client_id, redirect_uri='http://example.com')
 
-#     url = build_access_token_url({'grant_type': 'authorization_code',
-#                                   'code': 'INVALID-CODE',
-#                                   'redirect_uri': 'http://callback'})
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': code,
+                                  'redirect_uri': 'http://callback'})
 
-#     valid_headers = headers.copy()
-#     valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
+    valid_headers = headers.copy()
+    valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
 
-#     resp = requests.post(url, headers=valid_headers)
+    resp = requests.post(url, headers=valid_headers)
 
-#     assert 400 == resp.status_code
-#     assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-#     assert {'error': 'invalid_grant'} == json.loads(resp.content)
+    assert 400 == resp.status_code
+    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
+    assert {'error': 'invalid_grant',
+            'error_description': 'redirect_uri does not match'} == json.loads(resp.content)
 
 
 
-def request_authorization_code(client_id='123'):
+def request_authorization_code(client_id='123',
+                               redirect_uri='http://callback'):
     url = build_authorize_url({'client_id': client_id,
                                'response_type': 'code',
-                               'redirect_uri': 'http://callback'})
+                               'redirect_uri': redirect_uri})
     resp = requests.get(url, allow_redirects=False)
     code = get_code_from_url(resp.headers['Location'])
     return code
