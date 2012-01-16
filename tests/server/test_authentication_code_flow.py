@@ -209,8 +209,10 @@ def test_should_return_access_token_if_valid_authorization_code():
                                   'code': code,
                                   'redirect_uri': 'http://callback'})
 
-    valid_headers = headers.copy()
-    valid_headers['Authorization'] = build_basic_authorization_header(client_id, code)
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header(client_id, code)
+        }
 
     resp = requests.post(url, headers=valid_headers)
 
@@ -255,3 +257,28 @@ def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
         'Authorization': build_basic_authorization_header(client_id, code)
         }
     assert_invalid_grant(url, 'redirect_uri does not match', 'POST', headers)
+
+
+@pytest.mark.xfail
+def test_should_return_invalid_grant_if_different_client():
+    assert 0
+
+
+def test_should_return_invalid_grant_if_duplicate_access_token_request_with_same_authorization_grant():
+    client_id = 'client1'
+    code = request_authorization_code(client_id)
+
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': code,
+                                  'redirect_uri': 'http://callback'})
+
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header(client_id, code)
+        }
+
+    resp = requests.post(url, headers=valid_headers)
+    assert 200 == resp.status_code
+
+    assert_invalid_grant(url, 'authorization grant already used', 'POST',
+                         valid_headers)

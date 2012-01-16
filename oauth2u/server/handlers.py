@@ -95,6 +95,7 @@ class AccessTokenHandler(BaseRequestHandler):
         self.parse_authorization_header()
         self.validate_authorization()
         self.build_response()
+        self.mark_authorization_as_used()
                 
     def validate_headers(self):
         self.require_header('content-type', self.required_content_type)
@@ -118,9 +119,14 @@ class AccessTokenHandler(BaseRequestHandler):
         if authorization['redirect_uri'] != self.redirect_uri:
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'redirect_uri does not match'})
+        if database.is_code_used(self.code):
+            self.raise_http_400({'error': 'invalid_grant',
+                                 'error_description': 'authorization grant already used'})
+
+    def mark_authorization_as_used(self):
+        database.mark_as_used(self.code)
 
     def build_response(self):
-        self.set_header('Content-Type', 'application/json;charset=UTF-8')
         self.write({
                 'access_token': self.build_access_token(),
                 'expires_in': 3600,
