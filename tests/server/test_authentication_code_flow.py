@@ -12,58 +12,32 @@ TEST_SERVER_HOST = 'http://localhost:8888'
 # custom asserts
 
 def assert_required_argument(url, argument, method='GET', headers=None):
-    error_code = 'invalid_request'
     error_description = 'Parameter {0} is required'.format(argument)
+    assert_invalid_request(url, error_description, method, headers)
 
-    resp = requests.request(method, url, headers=headers)
-    assert 400 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-    
-    body = json.loads(resp.content)
-    assert error_code == body['error']
-    assert error_description == body['error_description']
 
 def assert_argument_value(url, argument, value, method='GET', headers=None):
-    error_code = 'invalid_request'
     error_description = 'Parameter {0} should be {1}'.format(argument, value)
+    assert_invalid_request(url, error_description, method, headers)
 
-    resp = requests.request(method, url, headers=headers)
-    assert 400 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-    
-    body = json.loads(resp.content)
-    assert error_code == body['error']
-    assert error_description == body['error_description']
 
 def assert_required_header(url, header, method='GET', headers=None):
-    error_code = 'invalid_request'
     error_description = 'Header {0} is required'.format(header)
-
-    resp = requests.request(method, url, headers=headers)
-    assert 400 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-
-    body = json.loads(resp.content)
-    assert error_code == body['error']
-    assert error_description == body['error_description']
+    assert_invalid_request(url, error_description, method, headers)
 
 
 def assert_header_value(url, header, value, method='GET', headers=None):
-    error_code = 'invalid_request'
     error_description = 'Header {0} should be {1}'.format(header, value)
-
-    resp = requests.request(method, url, headers=headers)
-    assert 400 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-
-    body = json.loads(resp.content)
-    assert error_code == body['error']
-    assert error_description == body['error_description']
+    assert_invalid_request(url, error_description, method, headers)
 
 
 def assert_header_starts_with(url, header, startswith, method='GET', headers=None):
-    error_code = 'invalid_request'
     error_description = 'Header {0} should start with "{1}"'.format(header, startswith)
+    assert_invalid_request(url, error_description, method, headers)
+
+
+def assert_invalid_request(url, error_description, method, headers):
+    error_code = 'invalid_request'
 
     resp = requests.request(method, url, headers=headers)
     assert 400 == resp.status_code
