@@ -7,7 +7,7 @@ from functools import partial
 import pytest
 import requests
 
-TEST_SERVER_HOST = 'http://localhost:8888'
+from tests.helpers import build_authorize_url, build_access_token_url, TEST_SERVER_HOST
 
 # custom asserts
 
@@ -73,16 +73,6 @@ def build_basic_authorization_header(client_id, code):
     digest = base64.b64encode('{0}:{1}'.format(client_id, code))
     return 'Basic {0}'.format(digest)
 
-def build_url(host, path, query=None):
-    query = query or {}
-    return u'{0}/{1}?{2}'.format(host.rstrip('/'),
-                                 path.lstrip('/'),
-                                 urllib.urlencode(query))
-
-# urls used on tests
-
-build_authorize_url = partial(build_url, TEST_SERVER_HOST, '/authorize')
-build_access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')
 
 #
 # test authorization request

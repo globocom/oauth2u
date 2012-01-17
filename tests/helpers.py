@@ -1,17 +1,14 @@
 import sys
 import urllib
+from functools import partial
 
-import oauth2u
-import oauth2u.tokens
+TEST_SERVER_HOST = 'http://localhost:8888'
 
-oauth2u.tokens.generate_authorization_code = lambda: '123-abc'
-oauth2u.tokens.generate_access_token = lambda: '321-access-token'
+def build_url(host, path, query=None):
+    query = query or {}
+    return u'{0}/{1}?{2}'.format(host.rstrip('/'),
+                                 path.lstrip('/'),
+                                 urllib.urlencode(query))
 
-class OAuthStubServer(oauth2u.Server):
-    pass
-
-
-if __name__ == '__main__':
-    if 'start_test_server' in sys.argv:
-        server = OAuthStubServer(port=8888)
-        server.start()
+build_authorize_url = partial(build_url, TEST_SERVER_HOST, '/authorize')
+build_access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')
