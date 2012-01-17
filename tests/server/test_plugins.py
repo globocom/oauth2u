@@ -74,21 +74,28 @@ def test_should_load_plugins_from_directories():
 
     function = plugins.find('authorization-POST')
 
-    assert 'on_authorization_POST_do_nothing' == function.__name__
+    assert 'on_authorization_POST_to_test' == function.__name__
 
 
-def test_using_authorization_GET_plugin_to_override_default_behaviour():
-    @plugins.register('authorization-GET')
-    def on_authorization_GET(handler):
-        handler.write("I'm a dummy plugin doing nothing")
-
+def test_using_authorization_GET_plugin_to_execute_on_authorization_request_GET_method():
+    # test plugins are registered on tests/server/plugins_to_test/dummy_plugins.py
     url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
                                'response_type': 'code',
                                'redirect_uri': 'http://example.com/return'})
     resp = requests.get(url, allow_redirects=False)
 
     assert 200 == resp.status_code
-    assert u"I'm a dummy plugin doing nothing" == resp.content
+    assert u"I'm a dummy plugin doing nothing on GET" == resp.content
+
+
+def test_using_authorization_POST_plugin_to_execute_on_authorization_request_POST_method():
+    url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://example.com/return'})
+    resp = requests.post(url)
+
+    assert 200 == resp.status_code
+    assert u"I'm a dummy plugin doing nothing on POST" == resp.content
 
 
 def test_call_should_return_False_if_plugin_not_found():

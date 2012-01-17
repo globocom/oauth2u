@@ -100,6 +100,9 @@ def test_should_require_redirect_uri_argument():
 
 
 def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
+    # the default behaviour is to redirect, it can be customized using
+    # plugins. see usage on oauth2u/tests/server/test_plugins.py and 
+    # oauth2u/examples/
     url = build_authorize_url({'client_id': '123',
                                'response_type': 'code',
                                'redirect_uri': 'http://callback'})

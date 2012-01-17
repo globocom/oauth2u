@@ -22,8 +22,14 @@ class Server(object):
         self.start_ioloop()
 
     def create_application(self):
-        self.application = tornado.web.Application(self.urls, debug=True)
+        self.application = tornado.web.Application(self.urls,
+                                                   **self.application_settings)
         self.application.listen(self.port)
     
+    @property
+    def application_settings(self):
+        return dict(debug=True,
+                    cookie_secret=str(uuid.uuid4()))
+
     def start_ioloop(self):
         tornado.ioloop.IOLoop.instance().start()

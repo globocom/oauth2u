@@ -40,6 +40,7 @@ def call(name, *args, **kwargs):
         return False
     return True
 
+
 def unregister_all():
     for key in PLUGINS:
         PLUGINS[key] = None
