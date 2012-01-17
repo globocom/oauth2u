@@ -1,31 +1,37 @@
+import datetime
 from oauth2u.server import database
 
-
-def test_find_should_return_none_if_no_authorization_is_created():
-    auth = database.find_authorization(code='1234')
-
-    assert auth is None
+def test_find_client_return_None_if_no_client_id_found():
+    assert database.find_client('no-client-id') is None
 
 
-def test_should_be_able_to_save_and_retrieve_authorizations():
-    database.save_authorization(code='1234', client_id='client1',
-                                redirect_uri='http://callback/return')
+def test_should_save_and_retrieve_clients_informations():
+    client_information =  {
+        'authorization_code': 'authorization-code',
+        'authorization_code_generation_date': datetime.datetime.utcnow(),
+        'redirect_uri': 'http://example.com/redirect-uri',
+        'redirect_uri_with_code': 'http://example.com/redirect-uri?code=authorization-code'
+        }
 
-    auth = database.find_authorization(code='1234')
+    database.save_client_information('client-id-1', **client_information)
+    assert client_information == database.find_client('client-id-1')
 
-    assert 'client1' == auth['client_id']
-    assert 'http://callback/return' == auth['redirect_uri']
 
-def test_new_authorizations_are_not_flagged_as_used():
-    database.save_authorization(code='1234', client_id='client1',
-                                redirect_uri='http://callback/return')
+def new_client_authorization_code_are_not_marked_as_used():
+    database.save_client_information('client-id-1', 
+                                     'authorization-code',
+                                     datetime.datetime.utcnow(),
+                                     'http://example.com/redirect-uri',
+                                     'http://example.com/redirect-uri?code=authorization-code')
+    assert not database.is_authorization_code_used('client-id-1')
 
-    assert False == database.is_code_used('1234')
 
-def test_should_be_possible_to_mark_authorization_as_used():
-    database.save_authorization(code='1234', client_id='client1',
-                                redirect_uri='http://callback/return')
+def test_should_mark_client_authorization_code_as_used():
+    database.save_client_information('client-id-1', 
+                                     'authorization-code',
+                                     datetime.datetime.utcnow(),
+                                     'http://example.com/redirect-uri',
+                                     'http://example.com/redirect-uri?code=authorization-code')
+    database.mark_authorization_code_as_used('client-id-1')
 
-    database.mark_as_used(code='1234')
-
-    assert True == database.is_code_used('1234')
+    assert database.is_authorization_code_used('client-id-1')

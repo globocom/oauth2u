@@ -1,6 +1,7 @@
 # coding: utf-8
 import urllib
 import base64
+import datetime
 
 import tornado
 
@@ -58,8 +59,8 @@ class AuthorizationHandler(BaseRequestHandler):
         self.validate_arguments()
         self.load_arguments()
         self.create_authorization_token()
+        self.save_client_tokens()
         self.redirect_with_token()
-        self.save_authorization_token()
 
     def validate_arguments(self):
         ''' Currently only ``code`` is supported '''
@@ -73,12 +74,20 @@ class AuthorizationHandler(BaseRequestHandler):
         self.code = oauth2u.tokens.generate_authorization_code()
 
     def redirect_with_token(self):
+        self.redirect(self.build_redirect_uri())
+
+    def build_redirect_uri(self):
         params = {'code': self.code}
         prefix = '?' if '?' not in self.redirect_uri else '&'
-        self.redirect(self.redirect_uri + prefix + urllib.urlencode(params))
+        return self.redirect_uri + prefix + urllib.urlencode(params)
 
-    def save_authorization_token(self):
-        database.save_authorization(self.code, self.client_id, self.redirect_uri)
+    def save_client_tokens(self):
+        database.save_client_information(
+            self.client_id,
+            authorization_code=self.code,
+            authorization_code_generation_date=datetime.datetime.utcnow(),
+            redirect_uri=self.redirect_uri,
+            redirect_uri_with_code=self.build_redirect_uri())
 
 class AccessTokenHandler(BaseRequestHandler):
     '''
@@ -93,10 +102,10 @@ class AccessTokenHandler(BaseRequestHandler):
         self.validate_headers()
         self.load_arguments()
         self.parse_authorization_header()
-        self.validate_authorization()
+        self.validate_client_authorization()
         self.build_response()
-        self.mark_authorization_as_used()
-                
+        self.mark_client_authorization_code_as_used()
+
     def validate_headers(self):
         self.require_header('content-type', self.required_content_type)
         self.require_header('authorization', startswith='Basic ')
@@ -111,20 +120,27 @@ class AccessTokenHandler(BaseRequestHandler):
         digest = digest.lstrip('Basic ')
         self.client_id, code = base64.b64decode(digest).split(':')
 
-    def validate_authorization(self):
-        authorization = database.find_authorization(self.code)
-        if not authorization:
+    def validate_client_authorization(self):
+        client = database.find_client(self.client_id)
+
+        if not client or not client.get('authorization_code'):
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'Code not found'})
-        if authorization['redirect_uri'] != self.redirect_uri:
+
+        if client['authorization_code'] != self.code:
+            self.raise_http_400({'error': 'invalid_grant',
+                                 'error_description': 'Code not found'})
+
+        if client['redirect_uri'] != self.redirect_uri:
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'redirect_uri does not match'})
-        if database.is_code_used(self.code):
+
+        if database.is_authorization_code_used(self.client_id):
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'authorization grant already used'})
 
-    def mark_authorization_as_used(self):
-        database.mark_as_used(self.code)
+    def mark_client_authorization_code_as_used(self):
+        database.mark_authorization_code_as_used(self.client_id)
 
     def build_response(self):
         self.write({

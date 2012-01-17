@@ -256,7 +256,7 @@ def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         'Authorization': build_basic_authorization_header(client_id, code)
         }
-    assert_invalid_grant(url, 'redirect_uri does not match', 'POST', headers)
+    assert_invalid_grant(url, 'redirect_uri does not match', 'POST', valid_headers)
 
 
 @pytest.mark.xfail
