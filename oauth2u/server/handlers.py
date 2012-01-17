@@ -5,7 +5,7 @@ import datetime
 
 import tornado
 
-from oauth2u.server import database
+from oauth2u.server import database, plugins
 import oauth2u.tokens
 
 class BaseRequestHandler(tornado.web.RequestHandler):
@@ -60,7 +60,8 @@ class AuthorizationHandler(BaseRequestHandler):
         self.load_arguments()
         self.create_authorization_token()
         self.save_client_tokens()
-        self.redirect_with_token()
+        if not plugins.call('authorization-GET', self):
+            self.redirect_with_token()
 
     def validate_arguments(self):
         ''' Currently only ``code`` is supported '''

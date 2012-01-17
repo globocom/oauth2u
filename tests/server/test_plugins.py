@@ -1,11 +1,15 @@
 import os.path
 
+import requests
 import pytest
 
 from oauth2u.server import plugins
-
+from tests.helpers import build_authorize_url
 
 def setup_function(funct):
+    plugins.unregister_all()
+
+def teardown_function(func):
     plugins.unregister_all()
 
 
@@ -64,7 +68,47 @@ def test_should_load_plugins_from_directories():
     function = plugins.find('authorization-POST')
 
     assert 'on_authorization_POST_do_nothing' == function.__name__
+
+
+def test_using_authorization_GET_plugin_to_override_default_behaviour():
+    @plugins.register('authorization-GET')
+    def on_authorization_GET(handler):
+        handler.write("I'm a dummy plugin doing nothing")
+
+    url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://example.com/return'})
+    resp = requests.get(url, allow_redirects=False)
+
+    assert 200 == resp.status_code
+    assert u"I'm a dummy plugin doing nothing" == resp.content
+
+
+def test_call_plugin_should_return_False_if_plugin_not_found():
+    assert plugins.call('authorization-GET') is False
+
+
+def test_call_plugin_should_return_True_of_plugin_called():
+    called = []
+    @plugins.register('authorization-GET')
+    def on_authorization_GET(handler):
+        called.append(handler)
     
+    assert plugins.call('authorization-GET', "handler") is True
+    assert ["handler"] == called
+
+
+def test_call_plugin_should_return_False_if_plugin_raises_ignore_plugin():
+    called = []
+    @plugins.register('authorization-GET')
+    def on_authorization_GET(handler):
+        called.append(handler)
+        raise plugins.IgnorePlugin()
+    
+    assert plugins.call('authorization-GET', "handler") is False
+    assert ["handler"] == called
+    
+
 
 # custom asserts
 

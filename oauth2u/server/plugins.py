@@ -27,6 +27,17 @@ def find(name):
     return function
 
 
+def call(name, *args, **kwargs):
+    try:
+        function = find(name)
+    except PluginNotFound:
+        return False
+    try:
+        function(*args, **kwargs)
+    except IgnorePlugin:
+        return False
+    return True
+
 def unregister_all():
     for key in PLUGINS:
         PLUGINS[key] = None
@@ -43,4 +54,7 @@ class PluginNotFound(Exception):
     pass
 
 class InvalidPlugin(Exception):
+    pass
+
+class IgnorePlugin(Exception):
     pass

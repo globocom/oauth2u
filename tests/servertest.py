@@ -1,5 +1,6 @@
 import sys
 import urllib
+from os.path import dirname, join, abspath
 
 import oauth2u
 import oauth2u.tokens
@@ -7,10 +8,10 @@ import oauth2u.tokens
 oauth2u.tokens.generate_authorization_code = lambda: '123-abc'
 oauth2u.tokens.generate_access_token = lambda: '321-access-token'
 
-class OAuthStubServer(oauth2u.Server):
-    pass
-
 
 if __name__ == '__main__':
-    server = OAuthStubServer(port=8888)
+    plugins = abspath(join(dirname(__file__), 'server', 'plugins_to_test'))
+    oauth2u.server.plugins.load_from_directories(plugins)
+
+    server = oauth2u.server.Server(port=8888)
     server.start()
