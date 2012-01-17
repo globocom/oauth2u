@@ -15,13 +15,13 @@ function run_tests {
     start_test_server
     PYTHONPATH=. py.test -vs tests/ $@
     exit_code=$?
-    Stop_test_server
+    stop_test_server
     exit $exit_code
 }
 
 function stop_test_server {
 	echo "Stop test server..."
-    ps ax | grep start_test_server | grep -v grep | cut -d ' ' -f 1 | xargs kill
+    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1 | xargs kill
 }
 
 if [ -z "$1" ]; then
