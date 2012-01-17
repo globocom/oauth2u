@@ -10,6 +10,9 @@ from tests.helpers import build_root_url
 def setup_function(func):
     handlers.unregister_all()
 
+def teardown_function(func):
+    handlers.unregister_all()
+
 
 def test_should_register_new_url_handler():
     assert_no_url_handler_for('/test/dummy-url')
@@ -29,6 +32,13 @@ def test_should_load_handlers_from_directories():
     handlers.load_from_directories(directory)
     assert_url_handler_name('/test/dummy-url', 'DummyHandler')
 
+def test_items_should_list_all_urls_and_handlers():
+    @handlers.register(r'/test/dummy-url')
+    class DummyHandler(tornado.web.RequestHandler):
+        def get(self):
+            self.write("Dummy handler")
+
+    assert [('/test/dummy-url', DummyHandler)] == list(handlers.items())
 
 def test_registered_handler_should_work_as_a_normal_url_handler():
     @handlers.register(r'/test/dummy-url')

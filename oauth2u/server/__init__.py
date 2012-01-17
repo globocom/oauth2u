@@ -19,7 +19,7 @@ class Server(object):
     def urls(self):
         urls = [(r'/authorize', AuthorizationHandler),
                 (r'/access-token', AccessTokenHandler)]
-        for url_and_handler in handlers.URLS.iteritems():
+        for url_and_handler in handlers.items():
             urls.append(url_and_handler)
 
         return urls

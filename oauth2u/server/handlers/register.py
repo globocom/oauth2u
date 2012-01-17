@@ -10,6 +10,9 @@ def register(url):
     return decorator
 
 
+def items():
+    return URLS.iteritems()
+
 def unregister_all():
     URLS.clear()
 
