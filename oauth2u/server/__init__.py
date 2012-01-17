@@ -4,7 +4,6 @@ import urllib
 import tornado.web
 import tornado.ioloop
 
-from .handlers import AuthorizationHandler, AccessTokenHandler
 from oauth2u.server import handlers, plugins
 
 class Server(object):
@@ -17,12 +16,7 @@ class Server(object):
 
     @property
     def urls(self):
-        urls = [(r'/authorize', AuthorizationHandler),
-                (r'/access-token', AccessTokenHandler)]
-        for url_and_handler in handlers.items():
-            urls.append(url_and_handler)
-
-        return urls
+        return [ url_and_handler for url_and_handler in handlers.items() ]
 
     def load_plugins(self, directories):
         plugins.load_from_directories(*directories)

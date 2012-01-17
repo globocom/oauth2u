@@ -4,12 +4,14 @@ import base64
 import datetime
 
 from oauth2u.server import database, plugins
+from oauth2u.server.handlers.register import register
 import oauth2u.tokens
 
 from .base import BaseRequestHandler
 
 __all__ = 'AuthorizationHandler', 'AccessTokenHandler'
 
+@register(r'/authorize')
 class AuthorizationHandler(BaseRequestHandler):
     '''
     Handler for the Authorization Request defined in
@@ -56,6 +58,7 @@ class AuthorizationHandler(BaseRequestHandler):
             redirect_uri_with_code=self.build_redirect_uri())
 
 
+@register(r'/access-token')
 class AccessTokenHandler(BaseRequestHandler):
     '''
     Handler for the Access Token Request defined in

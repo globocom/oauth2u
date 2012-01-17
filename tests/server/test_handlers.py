@@ -55,10 +55,10 @@ def test_registered_handler_should_work_as_a_normal_url_handler():
 # custom asserts
 
 def assert_no_url_handler_for(url):
-    assert handlers.URLS.get(url) is None
+    assert dict(handlers.items()).get(url) is None
 
 def assert_url_handler(url, handler):
-    assert handlers.URLS.get(url) is handler
+    assert dict(handlers.items()).get(url) is handler
 
 def assert_url_handler_name(url, handler_name):
-    assert handlers.URLS[url].__name__ == handler_name
+    assert dict(handlers.items())[url].__name__ == handler_name
