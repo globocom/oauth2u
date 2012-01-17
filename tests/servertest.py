@@ -11,7 +11,7 @@ oauth2u.tokens.generate_access_token = lambda: '321-access-token'
 
 if __name__ == '__main__':
     plugins = abspath(join(dirname(__file__), 'server', 'plugins_to_test'))
-    oauth2u.server.plugins.load_from_directories(plugins)
 
-    server = oauth2u.server.Server(port=8888)
+    server = oauth2u.server.Server(port=8888,
+                                   plugins_directories=[plugins])
     server.start()

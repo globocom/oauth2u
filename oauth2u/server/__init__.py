@@ -5,17 +5,22 @@ import tornado.web
 import tornado.ioloop
 
 from .handlers import AuthorizationHandler, AccessTokenHandler
+from .plugins import load_from_directories
 
 class Server(object):
 
-    def __init__(self, port=8000):
+    def __init__(self, port=8000, plugins_directories=()):
         self.port = port
         self.application = None
+        self.load_plugins(plugins_directories)
 
     @property
     def urls(self):
         return ((r'/authorize', AuthorizationHandler),
                 (r'/access-token', AccessTokenHandler))
+
+    def load_plugins(self, directories):
+        load_from_directories(*directories)
 
     def start(self):
         self.create_application()
