@@ -3,7 +3,7 @@ import os
 
 import tornado
 
-from oauth2u.server import database
+from oauth2u.server import database, loader
 
 
 PLUGINS = {
@@ -47,10 +47,7 @@ def unregister_all():
 
 
 def load_from_directories(*directory_list):
-    for directory in directory_list:
-        for filename in os.listdir(directory):
-            execfile(os.path.join(directory, filename), globals(), locals())
-
+    loader.load_from_directories(*directory_list)
 
 
 class PluginNotFound(Exception):

@@ -10,5 +10,7 @@ def build_url(host, path, query=None):
                                  path.lstrip('/'),
                                  urllib.urlencode(query))
 
+build_root_url = partial(build_url, TEST_SERVER_HOST)
+
 build_authorize_url = partial(build_url, TEST_SERVER_HOST, '/authorize')
 build_access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')

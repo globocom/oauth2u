@@ -3,50 +3,12 @@ import urllib
 import base64
 import datetime
 
-import tornado
-
 from oauth2u.server import database, plugins
 import oauth2u.tokens
 
-class BaseRequestHandler(tornado.web.RequestHandler):
+from .base import BaseRequestHandler
 
-    def require_argument(self, name, expected_value=None):
-        value = self.get_argument(name, None)
-        if value is None:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Parameter {0} is required'.format(name)})
-
-        if expected_value and value != expected_value:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Parameter {0} should be {1}'.format(name, expected_value)})
-        return value
-
-    def require_header(self, name, expected_value=None, startswith=None):
-        value = self.request.headers.get(name)
-        if value is None:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Header {0} is required'.format(name)})
-
-        if expected_value and value != expected_value:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Header {0} should be {1}'.format(name, expected_value)})
-
-        if startswith and not value.startswith(startswith):
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Header {0} should start with "{1}"'.format(name, startswith)})
-
-        return value
-
-    def raise_http_400(self, response_body):
-        error = tornado.web.HTTPError(400, '')
-        error.response_body = response_body
-        raise error
-
-    def get_error_html(self, status_code, exception, **kwargs):
-        ''' Called by tornado to fill error response body '''
-        if hasattr(exception, 'response_body'):
-            self.write(exception.response_body)
-
+__all__ = 'AuthorizationHandler', 'AccessTokenHandler'
 
 class AuthorizationHandler(BaseRequestHandler):
     '''
@@ -92,6 +54,7 @@ class AuthorizationHandler(BaseRequestHandler):
             authorization_code_generation_date=datetime.datetime.utcnow(),
             redirect_uri=self.redirect_uri,
             redirect_uri_with_code=self.build_redirect_uri())
+
 
 class AccessTokenHandler(BaseRequestHandler):
     '''

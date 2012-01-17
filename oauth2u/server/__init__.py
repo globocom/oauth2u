@@ -5,22 +5,30 @@ import tornado.web
 import tornado.ioloop
 
 from .handlers import AuthorizationHandler, AccessTokenHandler
-from .plugins import load_from_directories
+from oauth2u.server import handlers, plugins
 
 class Server(object):
 
-    def __init__(self, port=8000, plugins_directories=()):
+    def __init__(self, port=8000, plugins_directories=(), handlers_directories=()):
         self.port = port
         self.application = None
         self.load_plugins(plugins_directories)
+        self.load_handlers(handlers_directories)
 
     @property
     def urls(self):
-        return ((r'/authorize', AuthorizationHandler),
-                (r'/access-token', AccessTokenHandler))
+        urls = [(r'/authorize', AuthorizationHandler),
+                (r'/access-token', AccessTokenHandler)]
+        for url_and_handler in handlers.URLS.iteritems():
+            urls.append(url_and_handler)
+
+        return urls
 
     def load_plugins(self, directories):
-        load_from_directories(*directories)
+        plugins.load_from_directories(*directories)
+
+    def load_handlers(self, directories):
+        handlers.load_from_directories(*directories)
 
     def start(self):
         self.create_application()
