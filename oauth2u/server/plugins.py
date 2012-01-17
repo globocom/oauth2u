@@ -21,6 +21,8 @@ def register(name):
 
 
 def find(name):
+    if name not in PLUGINS:
+        raise InvalidPlugin("Plugin name '{0}' is invalid. So it's not possible to look for plugins with this name".format(name))
     function = PLUGINS.get(name)
     if not function:
         raise PluginNotFound("No plugin registered to '{0}'".format(name))

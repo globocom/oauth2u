@@ -13,7 +13,7 @@ def teardown_function(func):
     plugins.unregister_all()
 
 
-def test_should_register_pre_defined_plugins():    
+def test_should_register_plugins():    
     assert_no_plugin_for('authorization-GET')
     
     @plugins.register('authorization-GET')
@@ -23,7 +23,7 @@ def test_should_register_pre_defined_plugins():
     assert_plugin_is('authorization-GET', on_authorization_GET)
 
 
-def test_should_raise_invalid_plugin_if_trying_to_register_on_non_existent_plugin():
+def test_should_raise_InvalidPlugin_if_trying_to_register_on_non_existent_plugin_name():
     with pytest.raises(plugins.InvalidPlugin) as error:
         @plugins.register('NON-EXISTENT-PLUGIN')
         def on_authorization_GET(handler):
@@ -44,7 +44,7 @@ def test_should_override_existing_plugin_if_new_register():
     assert_plugin_is('authorization-GET', new_on_authorization_GET)
 
 
-def test_should_resolve_plugin_by_name():
+def test_should_find_plugin_by_name():
     @plugins.register('authorization-GET')
     def on_authorization_GET(handler):
         handler.write('do nothing')
@@ -52,11 +52,18 @@ def test_should_resolve_plugin_by_name():
     assert on_authorization_GET == plugins.find('authorization-GET')
 
 
-def test_should_raise_value_error_trying_to_find_plugin_but_none_registered():
+def test_should_raise_PluginNotFound_if_trying_to_find_plugin_but_none_registered():
     with pytest.raises(plugins.PluginNotFound) as error:
         plugins.find('authorization-POST')
 
     assert "No plugin registered to 'authorization-POST'" in str(error)
+
+
+def test_should_raise_InvalidPlugin_if_trying_to_find_plugin_on_invalid_plugin_name():
+    with pytest.raises(plugins.InvalidPlugin) as error:
+        plugins.find('NO-SUCH-PLUGIN-NAME')
+
+        assert "Plugin name 'NO-SUCH-PLUGIN-NAME' is invalid. So it's not possible to look for plugins with this name" in str(error)
 
 
 def test_should_load_plugins_from_directories():
@@ -84,11 +91,16 @@ def test_using_authorization_GET_plugin_to_override_default_behaviour():
     assert u"I'm a dummy plugin doing nothing" == resp.content
 
 
-def test_call_plugin_should_return_False_if_plugin_not_found():
+def test_call_should_return_False_if_plugin_not_found():
     assert plugins.call('authorization-GET') is False
 
 
-def test_call_plugin_should_return_True_of_plugin_called():
+def test_call_should_let_InvalidPlugin_exception_to_be_raised():
+    with pytest.raises(plugins.InvalidPlugin):
+        plugins.call('INVALID-PLUGIN')
+
+
+def test_call_should_return_True_if_plugin_called():
     called = []
     @plugins.register('authorization-GET')
     def on_authorization_GET(handler):
@@ -98,7 +110,7 @@ def test_call_plugin_should_return_True_of_plugin_called():
     assert ["handler"] == called
 
 
-def test_call_plugin_should_return_False_if_plugin_raises_ignore_plugin():
+def test_call_should_return_False_if_plugin_raises_IgnorePlugin():
     called = []
     @plugins.register('authorization-GET')
     def on_authorization_GET(handler):
