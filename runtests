@@ -21,7 +21,7 @@ function run_tests {
 
 function stop_test_server {
 	echo "Stop test server..."
-    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1 | xargs kill
+    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1-2 | xargs kill
 }
 
 if [ -z "$1" ]; then
