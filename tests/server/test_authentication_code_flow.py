@@ -46,12 +46,12 @@ def assert_invalid_grant(url, error_description, method, headers):
 
 def assert_error_response(url, error_code, error_description, method, headers):
     resp = requests.request(method, url, headers=headers)
-    assert 400 == resp.status_code
     assert 'application/json; charset=UTF-8' == resp.headers['content-type']
 
     body = json.loads(resp.content)
     assert error_code == body['error']
     assert error_description == body['error_description']
+    assert 400 == resp.status_code
 
 
 # helpers
@@ -224,6 +224,8 @@ def test_should_return_400_if_invalid_body_format():
     assert 0
 
 
+# happy path!
+
 def test_happy_path_should_return_access_token_if_valid_authorization_code():
     # tokens generation is stubbed in tests/helpers.py
     client_id = 'client1'
@@ -247,6 +249,8 @@ def test_happy_path_should_return_access_token_if_valid_authorization_code():
     assert ['access_token', 'expires_in'] == body.keys()
     assert '321-access-token' == body['access_token']
 
+
+# all possible errors for access token request
 
 def test_should_return_401_with_invalid_client_error_if_invalid_client_id_on_Authorization_header():
     code = request_authorization_code('client-id')
@@ -288,37 +292,32 @@ def test_should_return_401_with_invalid_client_error_if_invalid_code_on_Authoriz
     assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
 
 
-def test_should_return_invalid_grant_error_if_code_not_found():
+def test_should_return_400_with_invalid_grant_error_if_code_from_body_was_not_found():
+    # there is a code for this client and the authorization header is valid, but
+    # the code informed on body is not the correct code
     code = request_authorization_code('client-id')
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': 'INVALID-CODE',
                                   'redirect_uri': 'http://callback'})
-
     valid_headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         'Authorization': build_basic_authorization_header('client-id', code)
         }
-    assert_invalid_grant(url, 'Code not found', 'POST', valid_headers)
+    assert_invalid_grant(url, 'Invalid code for this client', 'POST', valid_headers)
 
 
 def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
-    client_id = 'client1'
-    code = request_authorization_code(client_id, redirect_uri='http://example.com')
-
+    # the redirect uri informed on body is not the same informed when the code 
+    # was created
+    code = request_authorization_code('client-id', redirect_uri='http://example.com')
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': code,
                                   'redirect_uri': 'http://callback'}) # different uri
-
     valid_headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Authorization': build_basic_authorization_header(client_id, code)
+        'Authorization': build_basic_authorization_header('client-id', code)
         }
     assert_invalid_grant(url, 'redirect_uri does not match', 'POST', valid_headers)
-
-
-@pytest.mark.xfail
-def test_should_return_invalid_grant_if_different_client():
-    assert 0
 
 
 def test_should_return_invalid_grant_if_duplicate_access_token_request_with_same_authorization_grant():

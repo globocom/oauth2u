@@ -114,7 +114,7 @@ class AccessTokenHandler(BaseRequestHandler):
 
         if client['authorization_code'] != self.code:
             self.raise_http_400({'error': 'invalid_grant',
-                                 'error_description': 'Code not found'})
+                                 'error_description': 'Invalid code for this client'})
 
         if client['redirect_uri'] != self.redirect_uri:
             self.raise_http_400({'error': 'invalid_grant',
