@@ -131,7 +131,7 @@ def test_should_generate_tokens_using_generate_authorization_token_function():
                                'response_type': 'code',
                                'redirect_uri': 'http://callback'})
     resp = requests.get(url, allow_redirects=False)
-    assert 'http://callback?code=123-abc' == resp.headers['Location']
+    assert 'http://callback?code=am3jah7dl' == resp.headers['Location']
 
 
 #
@@ -224,7 +224,7 @@ def test_should_return_400_if_invalid_body_format():
     assert 0
 
 
-def test_should_return_access_token_if_valid_authorization_code():
+def test_happy_path_should_return_access_token_if_valid_authorization_code():
     # tokens generation is stubbed in tests/helpers.py
     client_id = 'client1'
     code = request_authorization_code(client_id)
@@ -250,7 +250,6 @@ def test_should_return_access_token_if_valid_authorization_code():
 
 def test_should_return_401_with_invalid_client_error_if_invalid_client_id_on_Authorization_header():
     code = request_authorization_code('pfc-client-id')
-
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': code,
                                   'redirect_uri': 'http://callback'})
@@ -269,24 +268,42 @@ def test_should_return_401_with_invalid_client_error_if_invalid_client_id_on_Aut
     assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
 
 
+def test_should_return_401_with_invalid_client_error_if_invalid_code_on_Authorization_header():
+    code = request_authorization_code('client-id')
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': code,
+                                  'redirect_uri': 'http://callback'})
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header('client-id', 'INVALIDCODE')
+        }
+    resp = requests.post(url, headers=valid_headers)
+    expected_response = {
+        'error': 'invalid_client',
+        'error_description': 'Invalid client_id or code on Authorization header',
+        }
+
+    assert expected_response == parse_json_response(resp)
+    assert 401 == resp.status_code
+    assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
+
+
 @pytest.mark.xfail
 def test_should_validate_authorization_header_base64_format():
     assert 0
 
 
 def test_should_return_invalid_grant_error_if_code_not_found():
-    client_id = 'client1'
-    code = request_authorization_code(client_id)
-
+    code = request_authorization_code('client-id')
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': 'INVALID-CODE',
                                   'redirect_uri': 'http://callback'})
 
     valid_headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Authorization': build_basic_authorization_header(client_id, code)
+        'Authorization': build_basic_authorization_header('client-id', code)
         }
-    assert_invalid_grant(url, 'Code not found', 'POST', headers)
+    assert_invalid_grant(url, 'Code not found', 'POST', valid_headers)
 
 
 def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():

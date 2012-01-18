@@ -16,7 +16,7 @@ from os.path import dirname, join, abspath
 import oauth2u
 import oauth2u.tokens
 
-oauth2u.tokens.generate_authorization_code = lambda: '123-abc'
+oauth2u.tokens.generate_authorization_code = lambda: 'am3jah7dl'
 oauth2u.tokens.generate_access_token = lambda: '321-access-token'
 
 

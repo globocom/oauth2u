@@ -93,13 +93,17 @@ class AccessTokenHandler(BaseRequestHandler):
         except TypeError:
             self.raise_http_400({'error': 'invalid_request',
                                  'error_description': 'Base 64 from Authorization header could not be decoded'})
-        self.client_id, code = digest.split(':')
+        self.client_id, self.code_from_header = digest.split(':')
 
     def validate_client_authorization(self):
         client = database.find_client(self.client_id)
 
         if not client:
             # TODO: this verification should looks for clients registration
+            self.raise_http_401({'error': 'invalid_client',
+                                 'error_description': 'Invalid client_id or code on Authorization header'})
+
+        if self.code_from_header != client['authorization_code']:
             self.raise_http_401({'error': 'invalid_client',
                                  'error_description': 'Invalid client_id or code on Authorization header'})
 
