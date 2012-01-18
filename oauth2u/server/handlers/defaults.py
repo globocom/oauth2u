@@ -88,7 +88,12 @@ class AccessTokenHandler(BaseRequestHandler):
     def parse_authorization_header(self):
         digest = self.request.headers.get('Authorization')
         digest = digest.lstrip('Basic ')
-        self.client_id, code = base64.b64decode(digest).split(':')
+        try:
+            digest = base64.b64decode(digest)
+        except TypeError:
+            self.raise_http_400({'error': 'invalid_request',
+                                 'error_description': 'Base 64 from Authorization header could not be decoded'})
+        self.client_id, code = digest.split(':')
 
     def validate_client_authorization(self):
         client = database.find_client(self.client_id)

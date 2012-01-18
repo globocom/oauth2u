@@ -176,6 +176,22 @@ def test_authorization_header_should_be_basic():
                               'POST',
                               headers=invalid_headers)
 
+def test_should_return_400_with_invalid_request_error_if_base64_header_could_not_be_decoded():
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': 'ccc',
+                                  'redirect_uri': 'http://callback'})
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': 'Basic this-is-not-base-64',
+        }
+    expected_response = {
+        'error': 'invalid_request',
+        'error_description': 'Base 64 from Authorization header could not be decoded'
+        }
+    resp = requests.post(url, headers=valid_headers)
+
+    assert 400 == resp.status_code
+    assert expected_response == parse_json_response(resp)
 
 # validates required POST parameters
 
