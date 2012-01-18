@@ -27,4 +27,5 @@ if __name__ == '__main__':
     server = oauth2u.server.Server(port=8888,
                                    plugins_directories=[plugins],
                                    handlers_directories=[handlers])
+    print 'Listening on 8888'
     server.start()

@@ -62,6 +62,7 @@ def request_authorization_code(client_id='123',
                                'response_type': 'code',
                                'redirect_uri': redirect_uri})
     resp = requests.get(url, allow_redirects=False)
+    assert 302 == resp.status_code
     code = get_code_from_url(resp.headers['Location'])
     return code
 
@@ -72,6 +73,10 @@ def get_code_from_url(url):
 def build_basic_authorization_header(client_id, code):
     digest = base64.b64encode('{0}:{1}'.format(client_id, code))
     return 'Basic {0}'.format(digest)
+
+def parse_json_response(response):
+    assert 'application/json; charset=UTF-8' == response.headers['content-type']
+    return json.loads(response.content)
 
 
 #
@@ -138,6 +143,8 @@ headers = {
     'Authorization': 'Basic MTIzOmZvbw==',
     }
 
+# validates required headers
+
 def test_should_require_content_type_header():
     assert_required_header(build_access_token_url(), 'content-type', 'POST')
 
@@ -162,13 +169,15 @@ def test_should_require_authorization_header():
 
 def test_authorization_header_should_be_basic():
     invalid_headers = {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                       'Authorization': 'Invalid asdf'}
+                       'Authorization': 'Invalid Basic Header'}
 
     assert_header_starts_with(build_access_token_url(), 'authorization',
                               'Basic ',
                               'POST',
                               headers=invalid_headers)
 
+
+# validates required POST parameters
 
 def test_should_require_grant_type_argument():
     assert_required_argument(build_access_token_url(), 'grant_type', 'POST',
@@ -193,6 +202,12 @@ def test_should_require_redirect_uri_argument():
                              headers=headers)
 
 
+@pytest.mark.xfail
+def test_should_return_400_if_invalid_body_format():
+    # the client could send the correct headers but invalid body format
+    assert 0
+
+
 def test_should_return_access_token_if_valid_authorization_code():
     # tokens generation is stubbed in tests/helpers.py
     client_id = 'client1'
@@ -215,6 +230,27 @@ def test_should_return_access_token_if_valid_authorization_code():
     body = json.loads(resp.content)
     assert ['access_token', 'expires_in'] == body.keys()
     assert '321-access-token' == body['access_token']
+
+
+def test_should_return_401_with_invalid_client_error_if_invalid_client_id_on_Authorization_header():
+    code = request_authorization_code('pfc-client-id')
+
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': code,
+                                  'redirect_uri': 'http://callback'})
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header('INCORREECT-CLIENT-ID', code)
+        }
+    resp = requests.post(url, headers=valid_headers)
+    expected_response = {
+        'error': 'invalid_client',
+        'error_description': 'Invalid client_id or code on Authorization header',
+        }
+
+    assert 401 == resp.status_code
+    assert expected_response == parse_json_response(resp)
+    assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
 
 
 @pytest.mark.xfail

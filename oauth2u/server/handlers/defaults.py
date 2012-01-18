@@ -93,7 +93,12 @@ class AccessTokenHandler(BaseRequestHandler):
     def validate_client_authorization(self):
         client = database.find_client(self.client_id)
 
-        if not client or not client.get('authorization_code'):
+        if not client:
+            # TODO: this verification should looks for clients registration
+            self.raise_http_401({'error': 'invalid_client',
+                                 'error_description': 'Invalid client_id or code on Authorization header'})
+
+        if not client.get('authorization_code'):
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'Code not found'})
 

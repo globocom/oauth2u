@@ -1,5 +1,6 @@
 import os.path
 
+import pytest
 import requests
 import tornado
 
@@ -32,6 +33,7 @@ def test_should_load_handlers_from_directories():
     handlers.load_from_directories(directory)
     assert_url_handler_name('/test/dummy-url', 'DummyHandler')
 
+
 def test_items_should_list_all_urls_and_handlers():
     @handlers.register(r'/test/dummy-url')
     class DummyHandler(tornado.web.RequestHandler):
@@ -39,6 +41,7 @@ def test_items_should_list_all_urls_and_handlers():
             self.write("Dummy handler")
 
     assert [('/test/dummy-url', DummyHandler)] == list(handlers.items())
+
 
 def test_registered_handler_should_work_as_a_normal_url_handler():
     @handlers.register(r'/test/dummy-url')
@@ -51,6 +54,10 @@ def test_registered_handler_should_work_as_a_normal_url_handler():
     assert 200 == resp.status_code
     assert "Dummy handler" == resp.content
 
+
+@pytest.mark.xfail
+def test_should_return_405_for_not_implemented_methods_on_default_handlers():
+    assert 0
 
 # custom asserts
 

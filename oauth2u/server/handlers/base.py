@@ -30,12 +30,23 @@ class BaseRequestHandler(tornado.web.RequestHandler):
         return value
 
     def raise_http_400(self, response_body):
-        error = tornado.web.HTTPError(400, '')
+        self.raise_http_error(400, response_body)
+
+    def raise_http_401(self, response_body):
+        self.raise_http_error(401, response_body,
+                              {'WWW-Authenticate': 'Basic realm="OAuth 2.0 Secure Area"'})
+
+    def raise_http_error(self, status, response_body, headers=None):
+        error = tornado.web.HTTPError(status, '')
         error.response_body = response_body
+        error.headers = headers or {}
         raise error
 
     def get_error_html(self, status_code, exception, **kwargs):
         ''' Called by tornado to fill error response body '''
         if hasattr(exception, 'response_body'):
             self.write(exception.response_body)
+
+        for name, value in getattr(exception, 'headers', {}).items():
+            self.set_header(name, value)
 
