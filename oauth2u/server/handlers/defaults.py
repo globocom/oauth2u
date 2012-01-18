@@ -2,6 +2,7 @@
 import urllib
 import base64
 import datetime
+import re
 
 from oauth2u.server import database, plugins
 from oauth2u.server.handlers.register import register
@@ -87,7 +88,7 @@ class AccessTokenHandler(BaseRequestHandler):
 
     def parse_authorization_header(self):
         digest = self.request.headers.get('Authorization')
-        digest = digest.lstrip('Basic ')
+        digest = re.sub(r'^Basic ', '', digest)
         try:
             digest = base64.b64decode(digest)
         except TypeError:

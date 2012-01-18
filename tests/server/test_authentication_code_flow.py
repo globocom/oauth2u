@@ -269,13 +269,13 @@ def test_should_return_401_with_invalid_client_error_if_invalid_client_id_on_Aut
 
 
 def test_should_return_401_with_invalid_client_error_if_invalid_code_on_Authorization_header():
-    code = request_authorization_code('client-id')
+    code = request_authorization_code('pfc-client-id')
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': code,
                                   'redirect_uri': 'http://callback'})
     valid_headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Authorization': build_basic_authorization_header('client-id', 'INVALIDCODE')
+        'Authorization': build_basic_authorization_header('pfc-client-id', 'INVALIDCODE')
         }
     resp = requests.post(url, headers=valid_headers)
     expected_response = {
