@@ -288,11 +288,6 @@ def test_should_return_401_with_invalid_client_error_if_invalid_code_on_Authoriz
     assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
 
 
-@pytest.mark.xfail
-def test_should_validate_authorization_header_base64_format():
-    assert 0
-
-
 def test_should_return_invalid_grant_error_if_code_not_found():
     code = request_authorization_code('client-id')
     url = build_access_token_url({'grant_type': 'authorization_code',
