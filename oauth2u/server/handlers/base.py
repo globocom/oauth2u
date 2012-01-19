@@ -61,6 +61,6 @@ class BaseRequestHandler(tornado.web.RequestHandler):
         if exception.response_body:
             self.write(exception.response_body)
 
-        for name, value in getattr(exception, 'headers', {}).items():
+        for name, value in exception.headers.items():
             self.set_header(name, value)
 
