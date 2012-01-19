@@ -2,3 +2,4 @@
 __pycache__
 tests/server.log
 oauth2u.egg-info
+.coverage

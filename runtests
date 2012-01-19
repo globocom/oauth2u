@@ -1,27 +1,29 @@
 #!/bin/bash
 
 function install_test_deps {
-    pip install pytest requests
+    pip install pytest requests coverage
 }
 
 function start_test_server {
     echo "Starting test server. Log: tests/server.log"
     rm -f tests/server.log
-    PYTHONPATH=. python tests/servertest.py >tests/server.log 2>&1 &
+    coverage run tests/servertest.py >tests/server.log 2>&1 &
 }
 
 function run_tests {
     install_test_deps
     start_test_server
-    PYTHONPATH=. py.test -vs tests/ $@
+    coverage run `which py.test` -vs tests/ $@
     exit_code=$?
     stop_test_server
+    coverage combine
+    coverage report
     exit $exit_code
 }
 
 function stop_test_server {
 	echo "Stop test server..."
-    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1-2 | xargs kill
+    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1-2 | xargs kill 2>&-
 }
 
 if [ -z "$1" ]; then
