@@ -60,5 +60,5 @@ def assert_unauthorized(url, headers):
 
 
 def assert_has_no_cache_headers(response):
-    assert response.headers.get('Cache-Control') == 'no-store'
-    assert response.headers.get('Pragma') == 'no-store'
+    assert 'no-store' == response.headers.get('Cache-Control')
+    assert 'no-cache' == response.headers.get('Pragma')

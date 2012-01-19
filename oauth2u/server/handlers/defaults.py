@@ -148,4 +148,4 @@ class AccessTokenHandler(BaseRequestHandler):
 
     def set_default_headers(self):
         self.set_header('Cache-Control', 'no-store')
-        self.set_header('Pragma', 'no-store')
+        self.set_header('Pragma', 'no-cache')
