@@ -128,6 +128,7 @@ class AccessTokenHandler(BaseRequestHandler):
     def build_response(self):
         self.write({
                 'access_token': self.build_access_token(),
+                'token_type': 'bearer',
                 'expires_in': 3600,
                 })
 

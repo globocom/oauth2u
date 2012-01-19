@@ -244,8 +244,9 @@ def test_happy_path_should_return_access_token_if_valid_authorization_code():
     body = parse_json_response(resp)
 
     assert 200 == resp.status_code
-    assert ['access_token', 'expires_in'] == body.keys()
+    assert ['access_token', 'token_type', 'expires_in'] == body.keys()
     assert body['access_token'].startswith('access-token-')
+    assert 'bearer' == body['token_type']
 
 
 # all possible errors for access token request
@@ -369,7 +370,7 @@ def check_multiple_users_with_client_ids(bob_client_id, ted_client_id):
     bob_json = parse_json_response(bob_response)
     ted_json = parse_json_response(ted_response)
 
-    assert ['access_token', 'expires_in'] == bob_json.keys()
-    assert ['access_token', 'expires_in'] == ted_json.keys()
+    assert ['access_token', 'token_type', 'expires_in'] == bob_json.keys()
+    assert ['access_token', 'token_type', 'expires_in'] == ted_json.keys()
 
     assert bob_json['access_token'] != ted_json['access_token']
