@@ -335,11 +335,17 @@ def test_should_return_invalid_grant_if_duplicate_access_token_request_with_same
                          valid_headers)
 
 
-# multiple users authenticating from the same client
+# multiple users authenticating
 
-def test_multiple_users_should_be_able_to_authenticate_using_the_same_client():
-    bob_code = request_authorization_code('client-id')
-    ted_code = request_authorization_code('client-id')
+def test_multiple_users_should_be_able_to_authenticate():
+    yield ("using same client id",
+           check_multiple_users_with_client_ids, 'client-id', 'client-id')
+    yield ("using different client ids",
+           check_multiple_users_with_client_ids, 'bob-client-id', 'ted-client-id')
+
+def check_multiple_users_with_client_ids(bob_client_id, ted_client_id):
+    bob_code = request_authorization_code(bob_client_id)
+    ted_code = request_authorization_code(ted_client_id)
 
     bob_url = build_access_token_url({'grant_type': 'authorization_code',
                                       'code': bob_code,
@@ -350,11 +356,11 @@ def test_multiple_users_should_be_able_to_authenticate_using_the_same_client():
 
     bob_response = requests.post(bob_url, headers={
             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'Authorization': build_basic_authorization_header('client-id', bob_code)
+            'Authorization': build_basic_authorization_header(bob_client_id, bob_code)
             })
     ted_response = requests.post(ted_url, headers={
             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'Authorization': build_basic_authorization_header('client-id', ted_code)
+            'Authorization': build_basic_authorization_header(ted_client_id, ted_code)
             })
 
     assert 200 == bob_response.status_code
