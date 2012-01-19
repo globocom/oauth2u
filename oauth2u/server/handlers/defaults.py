@@ -161,3 +161,7 @@ class AccessTokenHandler(BaseRequestHandler):
 
     def build_access_token(self):
         return oauth2u.tokens.generate_access_token()
+
+    def set_default_headers(self):
+        self.set_header('Cache-Control', 'no-store')
+        self.set_header('Pragma', 'no-store')

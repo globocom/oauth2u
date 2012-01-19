@@ -44,4 +44,21 @@ def assert_error_response(url, error_code, error_description, method, headers):
     assert error_code == body['error']
     assert error_description == body['error_description']
     assert 400 == resp.status_code
+    assert_has_no_cache_headers(resp)
 
+
+def assert_unauthorized(url, headers):
+    resp = requests.post(url, headers=headers)
+    expected_response = {
+        'error': 'invalid_client',
+        'error_description': 'Invalid client_id or code on Authorization header',
+    }
+    assert 401 == resp.status_code
+    assert expected_response == json.loads(resp.content)
+    assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
+    assert_has_no_cache_headers(resp)
+
+
+def assert_has_no_cache_headers(response):
+    assert response.headers.get('Cache-Control') == 'no-store'
+    assert response.headers.get('Pragma') == 'no-store'

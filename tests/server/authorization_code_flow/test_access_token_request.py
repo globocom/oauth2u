@@ -26,13 +26,15 @@ def test_happy_path_should_return_access_token_if_valid_authorization_code():
         'Authorization': build_basic_authorization_header(client_id, code)
         }
 
-    resp = requests.post(url, headers=valid_headers)
-    body = parse_json_response(resp)
+    response = requests.post(url, headers=valid_headers)
+    body = parse_json_response(response)
 
-    assert 200 == resp.status_code
+    assert 200 == response.status_code
+    assert response.headers.get('Content-Type') == 'application/json; charset=UTF-8'
     assert ['access_token', 'token_type', 'expires_in'] == body.keys()
     assert body['access_token'].startswith('access-token-')
     assert 'bearer' == body['token_type']
+    assert_has_no_cache_headers(response)
 
 
 
@@ -130,16 +132,7 @@ def test_should_return_401_with_invalid_client_error_if_invalid_client_id_on_Aut
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         'Authorization': build_basic_authorization_header('INCORREECT-CLIENT-ID', code)
         }
-    resp = requests.post(url, headers=valid_headers)
-    expected_response = {
-        'error': 'invalid_client',
-        'error_description': 'Invalid client_id or code on Authorization header',
-        }
-
-    assert 401 == resp.status_code
-    assert expected_response == parse_json_response(resp)
-    assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
-
+    assert_unauthorized(url, valid_headers)
 
 def test_should_return_401_with_invalid_client_error_if_invalid_code_on_Authorization_header():
     code = request_authorization_code('client-id')
@@ -150,16 +143,7 @@ def test_should_return_401_with_invalid_client_error_if_invalid_code_on_Authoriz
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         'Authorization': build_basic_authorization_header('client-id', 'INVALIDCODE')
         }
-    resp = requests.post(url, headers=valid_headers)
-    expected_response = {
-        'error': 'invalid_client',
-        'error_description': 'Invalid client_id or code on Authorization header',
-        }
-
-    assert expected_response == parse_json_response(resp)
-    assert 401 == resp.status_code
-    assert 'Basic realm="OAuth 2.0 Secure Area"' == resp.headers.get('WWW-Authenticate')
-
+    assert_unauthorized(url, valid_headers)
 
 def test_should_return_400_with_invalid_grant_error_if_code_from_body_was_not_found():
     # there is a code for this client and the authorization header is valid, but
