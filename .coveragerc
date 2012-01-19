@@ -6,6 +6,7 @@ source =
 
 omit =
      oauth2u/client.py
+     oauth2u/examples/*
 
 [report]
 ignore_errors = true
