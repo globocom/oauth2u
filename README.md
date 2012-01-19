@@ -1,27 +1,32 @@
 # OAuth 2 server and client implementation
 
-The idea is to implement an extensible server and a client of 
-the [OAuth 2.0 Authorization Protocol](http://tools.ietf.org/html/draft-ietf-oauth-v2-22).
+This project aims to implement the complete
+(OAuth 2.0 Authorization Protocol Specification)(http://tools.ietf.org/html/draft-ietf-oauth-v2-22).
 
 
-## How to contribue
+# Server
 
-1. Create a fork on github: https://github.com/igorsobreira/oauth2u
+The first part is a oauth 2.0 server. It provies the endpoints specified 
+by oauth 2.0 specification with possibilities to plug code to customize
+specific behaviours (see plugins bellow). 
+You can also extend the server adding additional urls.
 
-2. Install the package for development:
+Here is an example on how to start the server:
 
-   `$ pip install -e oauth2u`
+    from auth2u.server import Server
+    
+    server = Server(port=8080)
+    server.start()
 
-3. Run tests:
+**Available parameters**
 
-   `$ ./runtests`
+- `port`: specify which port the server will listen (default is 8000)
+- `plugins_directories`: a list of absolute directories the server executes to register
+   plugins
+- `handlers_directories`: a list of absolute directories the server executes to register
+   new urls handlers
 
-4. Open an [issue](https://github.com/igorsobreira/oauth2u/issues),
-   if it doesn't exist yet, assign it to you and commit your changes 
-   in your fork. 
-
-5. Send a pull request
-
+There is a server on tests/servertest.py.
 
 ## Extending the Server
 
@@ -100,3 +105,27 @@ Example:
                 self.write("hello world")
 
 Read the tornado docs for more information on Request Handlers
+
+
+## How to contribue
+
+1. Create a fork on github: https://github.com/igorsobreira/oauth2u
+
+2. Install the package for development:
+
+   `$ pip install -e oauth2u`
+
+3. Run tests:
+
+   `$ ./runtests`
+
+4. Open an [issue](https://github.com/igorsobreira/oauth2u/issues),
+   if it doesn't exist yet, assign it to you and commit your changes 
+   in your fork. 
+
+5. Send a pull request
+
+6. Your commits must have tests, we have 100% coverage, so any code without 
+   tests is not welcome :)
+   If your modifications change API or adds a new feature, must update the
+   documentation.
