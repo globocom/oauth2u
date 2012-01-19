@@ -3,7 +3,7 @@ import requests
 from tests.helpers import (build_authorize_url, parse_query_string,
                            parse_json_response)
 
-# happy path!
+# happy paths!
 
 def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
     # the default behaviour is to redirect with access token without 
@@ -15,9 +15,9 @@ def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
                                'redirect_uri': 'http://callback'})
     assert_redirect_parameters_keys(url, 'http://callback', ['code'])
 
-# validate required GET arguments
+# validate required GET parameters
 
-def test_should_require_redirect_uri_argument():
+def test_should_require_redirect_uri_parameter():
     # if redirect_uri is not provided I can't redirect with GET
     # parameters, then just return 400 and a body with json
     url = build_authorize_url({})
@@ -30,13 +30,13 @@ def test_should_require_redirect_uri_argument():
     assert expected_body == body
 
 
-def test_should_require_response_type_argument():
+def test_should_require_response_type_parameter():
     url = build_authorize_url({'redirect_uri': 'http://callback/return'})
     assert_required_redirect_parameter(url, 'http://callback/return',
-                                           'response_type')
+                                       'response_type')
 
 
-def test_should_require_response_type_argument_to_be_code():
+def test_should_require_response_type_parameter_to_be_code():
     url = build_authorize_url({'redirect_uri': 'http://callback/return',
                                'response_type': 'invalid'})
     expected_params = {'error': 'invalid_request',

@@ -89,6 +89,11 @@ def test_should_return_400_with_invalid_request_error_if_base64_header_could_not
     assert expected_response == parse_json_response(resp)
 
 
+@pytest.mark.xfail
+def test_should_return_400_with_invalid_request_error_if_base64_header_is_not_in_the_correct_format():
+    # should be "string:string"
+    assert 0
+
 
 # validates required POST parameters
 
