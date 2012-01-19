@@ -12,10 +12,18 @@ Token generation is stubbed to produce deterministic values.
 import sys
 import urllib
 import uuid
+import signal
 from os.path import dirname, join, abspath
 
 import oauth2u
 import oauth2u.tokens
+
+def die(*args, **kw):
+    print "Captured SIGINT, exiting normally to save coverage"
+    exit(0)
+
+signal.signal(signal.SIGINT, die)
+
 
 def build():
     import random
