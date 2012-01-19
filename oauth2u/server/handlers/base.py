@@ -4,6 +4,7 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
     def require_argument(self, name, expected_value=None):
         value = self.get_argument(name, None)
+
         if value is None:
             self.raise_http_400({'error': 'invalid_request',
                                  'error_description': u'Parameter {0} is required'.format(name)})

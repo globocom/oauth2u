@@ -26,6 +26,12 @@ def parse_json_response(response):
     return json.loads(response.content)
 
 
+def parse_query_string(url):
+    url, query_string = url.split('?')
+    query = dict(cgi.parse_qsl(query_string))
+    return url, query
+
+
 def get_code_from_url(url):
     ''' Given an url returns the 'code' GET parameter '''
     query = dict(cgi.parse_qsl(url.split('?')[1]))

@@ -4,6 +4,8 @@ import base64
 import datetime
 import re
 
+import tornado
+
 from oauth2u.server import database, plugins
 from oauth2u.server.handlers.register import register
 import oauth2u.tokens
@@ -20,9 +22,21 @@ class AuthorizationHandler(BaseRequestHandler):
     
     '''
 
+    def raise_redirect_http_error(self, params):
+        error = tornado.web.HTTPError(302)
+        error.query_parameters = params
+        raise error
+
+    def get_error_html(self, status_code, exception, **kw):
+        if hasattr(exception, 'query_parameters'):
+            url = self.redirect_uri + '?' + urllib.urlencode(exception.query_parameters)
+            self.set_header('Location', url)
+        else:
+            super(AuthorizationHandler, self).get_error_html(status_code, exception, **kw)
+
     def get(self):
-        self.validate_arguments()
-        self.load_arguments()
+        self.load_parameters()
+        # self.validate_arguments()
         self.create_authorization_token()
         self.save_client_tokens()
         if not plugins.call('authorization-GET', self):
@@ -32,14 +46,34 @@ class AuthorizationHandler(BaseRequestHandler):
         if not plugins.call('authorization-POST', self):
             self.raise_http_error(405)
 
-    def validate_arguments(self):
-        ''' Currently only ``code`` is supported '''
-        self.require_argument('response_type', 'code')
+    def load_parameters(self):
+        self.load_redirect_uri_parameter()
+        self.load_response_type_parameter()
+        self.load_client_id_parameter()
 
-    def load_arguments(self):
-        self.client_id = self.require_argument('client_id')
-        self.redirect_uri = self.require_argument('redirect_uri')
+    def load_redirect_uri_parameter(self):
+        self.redirect_uri = self.get_argument('redirect_uri', None)
+        if self.redirect_uri is None:
+            self.raise_http_400({'error': 'invalid_request',
+                                 'error_description': 'Parameter redirect_uri is required'})
+        # self.client_id = self.require_argument('client_id')
 
+    def load_response_type_parameter(self):
+        self.response_type = self.get_argument('response_type', None)
+        if self.response_type is None:
+            self.raise_redirect_http_error({'error': 'invalid_request',
+                                            'error_description': 'Parameter response_type is required'})
+
+        if self.response_type != 'code':
+            self.raise_redirect_http_error({'error': 'invalid_request',
+                                            'error_description': 'Invalid response_type parameter'})
+    
+    def load_client_id_parameter(self):
+        self.client_id = self.get_argument('client_id', None)
+        if self.client_id is None:
+            self.raise_redirect_http_error({'error': 'invalid_request',
+                                            'error_description': 'Parameter client_id is required'})
+            
     def create_authorization_token(self):
         self.code = oauth2u.tokens.generate_authorization_code()
 
