@@ -24,14 +24,9 @@ def die(*args, **kw):
 
 signal.signal(signal.SIGINT, die)
 
-
-def build():
-    import random
-    return 'authorization-code-{0}'.format(random.randint(1,1000))
-
-# oauth2u.tokens.generate_authorization_code = lambda: 'authorization-code-{0}'.format(str(uuid.uuid4()))
+# stubs
+oauth2u.tokens.generate_authorization_code = lambda: 'authorization-code-{0}'.format(str(uuid.uuid4()))
 oauth2u.tokens.generate_access_token = lambda: 'access-token-{0}'.format(str(uuid.uuid4()))
-oauth2u.tokens.generate_authorization_code = build
 
 if __name__ == '__main__':
     plugins = abspath(join(dirname(__file__), 'server', 'plugins_to_test'))
