@@ -40,31 +40,15 @@ class AuthorizationHandler(BaseRequestHandler):
             self.raise_http_error(405)
 
     def load_parameters(self):
-        self.load_redirect_uri_parameter()
-        self.load_response_type_parameter()
-        self.load_client_id_parameter()
+        self.redirect_uri = self.require_argument('redirect_uri')
+        self.response_type = self.require_argument('response_type', 'code')
+        self.client_id = self.require_argument('client_id')
 
-    def load_redirect_uri_parameter(self):
-        self.redirect_uri = self.get_argument('redirect_uri', None)
-        if self.redirect_uri is None:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': 'Parameter redirect_uri is required'})
-
-    def load_response_type_parameter(self):
-        self.response_type = self.get_argument('response_type', None)
-        if self.response_type is None:
-            self.raise_http_302({'error': 'invalid_request',
-                                 'error_description': 'Parameter response_type is required'})
-
-        if self.response_type != 'code':
-            self.raise_http_302({'error': 'invalid_request',
-                                 'error_description': 'Invalid response_type parameter'})
-    
-    def load_client_id_parameter(self):
-        self.client_id = self.get_argument('client_id', None)
-        if self.client_id is None:
-            self.raise_http_302({'error': 'invalid_request',
-                                 'error_description': 'Parameter client_id is required'})
+    def raise_http_invalid_argument_error(self, parameter, error):
+        if parameter == 'redirect_uri':
+            self.raise_http_400(error)
+        else:
+            self.raise_http_302(error)
 
     def create_authorization_token(self):
         self.code = oauth2u.tokens.generate_authorization_code()

@@ -40,7 +40,7 @@ def test_should_require_response_type_argument_to_be_code():
     url = build_authorize_url({'redirect_uri': 'http://callback/return',
                                'response_type': 'invalid'})
     expected_params = {'error': 'invalid_request',
-                       'error_description': 'Invalid response_type parameter'}
+                       'error_description': 'Parameter response_type should be code'}
     assert_redirect_parameters(url, 'http://callback/return',
                                expected_params)
 

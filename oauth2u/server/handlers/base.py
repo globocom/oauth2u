@@ -4,15 +4,24 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
     def require_argument(self, name, expected_value=None):
         value = self.get_argument(name, None)
-
-        if value is None:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Parameter {0} is required'.format(name)})
-
-        if expected_value and value != expected_value:
-            self.raise_http_400({'error': 'invalid_request',
-                                 'error_description': u'Parameter {0} should be {1}'.format(name, expected_value)})
+        self.validate_argument(name, value, expected_value)
         return value
+
+    def validate_argument(self, name, value, expected_value):
+        if value is None:
+            error_description = u'Parameter {0} is required'.format(name)
+        elif expected_value and value != expected_value:
+            error_description = u'Parameter {0} should be {1}'.format(name, expected_value)
+        else:
+            return
+
+        error = {'error': 'invalid_request',
+                 'error_description': error_description}
+
+        self.raise_http_invalid_argument_error(name, error)
+
+    def raise_http_invalid_argument_error(self, parameter, error):
+        self.raise_http_400(error)
 
     def require_header(self, name, expected_value=None, startswith=None):
         value = self.request.headers.get(name)
