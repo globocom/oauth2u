@@ -123,11 +123,13 @@ class AccessTokenHandler(BaseRequestHandler):
         database.mark_client_authorization_code_as_used(self.client_id, self.code)
 
     def build_response(self):
-        self.write({
-                'access_token': self.build_access_token(),
-                'token_type': 'bearer',
-                'expires_in': 3600,
-                })
+        response = {
+            'access_token': self.build_access_token(),
+            'token_type': 'bearer',
+            'expires_in': 3600,
+            }
+        plugins.call('access-token-response', self, response)
+        self.write(response)
 
     def build_access_token(self):
         return oauth2u.tokens.generate_access_token()

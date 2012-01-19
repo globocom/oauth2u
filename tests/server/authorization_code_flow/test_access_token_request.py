@@ -245,3 +245,24 @@ def check_multiple_users_with_client_ids(bob_client_id, ted_client_id):
     assert ['access_token', 'token_type', 'expires_in'] == ted_json.keys()
 
     assert bob_json['access_token'] != ted_json['access_token']
+
+
+# plugins
+# test plugins are registered on tests/server/plugins_to_test
+
+def test_should_allow_json_response_customization_via_plugin():
+    client_id = 'client-id-from-access-token-tests'
+    code = request_authorization_code(client_id)
+    url = build_access_token_url({'grant_type': 'authorization_code',
+                                  'code': code,
+                                  'redirect_uri': 'http://callback'})
+    valid_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'Authorization': build_basic_authorization_header(client_id, code)
+        }
+
+    resp = requests.post(url, headers=valid_headers)
+    body = parse_json_response(resp)
+
+    assert 200 == resp.status_code
+    assert 'Igor Sobreira' == body.get('user_name','')

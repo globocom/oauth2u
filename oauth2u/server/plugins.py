@@ -9,12 +9,13 @@ from oauth2u.server import database, loader
 PLUGINS = {
     'authorization-GET': None,
     'authorization-POST': None,
+    'access-token-response': None,
 }
 
 def register(name):
     def decorator(function):
         if name not in PLUGINS:
-            raise InvalidPlugin("Plugin '{0}' doesn't not exist".format(name))
+            raise InvalidPlugin("Plugin name '{0}' is invalid".format(name))
         PLUGINS[name] = function
         return function
     return decorator

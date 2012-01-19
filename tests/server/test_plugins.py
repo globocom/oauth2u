@@ -29,7 +29,7 @@ def test_should_raise_InvalidPlugin_if_trying_to_register_on_non_existent_plugin
         def on_authorization_GET(handler):
             handler.write('do nothing')
     
-    assert "Plugin 'NON-EXISTENT-PLUGIN' doesn't not exist" in str(error)
+    assert "Plugin name 'NON-EXISTENT-PLUGIN' is invalid" in str(error)
 
 
 def test_should_override_existing_plugin_if_new_register():

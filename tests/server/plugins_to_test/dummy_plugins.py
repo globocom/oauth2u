@@ -13,6 +13,7 @@ def on_authorization_GET_to_test(handler):
         from oauth2u.server import plugins
         raise plugins.IgnorePlugin()
 
+
 @plugins.register('authorization-POST')
 def on_authorization_POST_to_test(handler):
     client_id = handler.get_argument('client_id', 'CLIENT_ID-NOT-INFORMED')
@@ -25,3 +26,9 @@ def on_authorization_POST_to_test(handler):
         # tests don't break
         from oauth2u.server import plugins
         raise plugins.IgnorePlugin()
+
+
+@plugins.register('access-token-response')
+def on_access_token_response(handler, response):
+    if handler.client_id == 'client-id-from-access-token-tests':
+        response['user_name'] = 'Igor Sobreira'
