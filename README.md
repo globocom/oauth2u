@@ -53,7 +53,7 @@ and saved on database.
 If no plugin is registered here the server redirects to `redirect_uri`
 without any specific verification.
 
-There is an example usage on how to build a login windown using this plugin
+There is an example usage on how to build a login window using this plugin
 and `authorization-POST` on [examples folder](https://github.com/igorsobreira/oauth2u/blob/master/examples/server_with_plugin_to_login.py)
 
 ##### `authorization-POST`
