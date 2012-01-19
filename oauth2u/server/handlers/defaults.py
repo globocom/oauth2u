@@ -106,10 +106,6 @@ class AccessTokenHandler(BaseRequestHandler):
             self.raise_http_401({'error': 'invalid_client',
                                  'error_description': 'Invalid client_id or code on Authorization header'})
 
-        if database.client_authorization_codes_count(self.client_id) == 0:
-            self.raise_http_400({'error': 'invalid_grant',
-                                 'error_description': 'Code not found'})
-
         if not database.client_has_authorization_code(self.client_id, self.code):
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'Invalid code for this client'})
