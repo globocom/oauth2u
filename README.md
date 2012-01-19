@@ -82,3 +82,21 @@ Example:
         def customize_response(handler, response):
             response.pop('expires_in')   # it's optional, and I don't want it...
             response['user_name'] = 'Bob'
+
+
+### New urls handlers
+
+Since the server is written using (tornado web framework)[http://tornadoweb.org], is
+natural that you can register new handlers.
+
+Example:
+
+        import tornado
+        from oauth2u.server import handlers
+
+        @handlers.register('/my/custom/url')
+        class DummyHandler(tornado.web.RequestHandler):
+            def get(self):
+                self.write("hello world")
+
+Read the tornado docs for more information on Request Handlers
