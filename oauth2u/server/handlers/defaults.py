@@ -4,6 +4,8 @@ import base64
 import datetime
 import re
 
+import tornado
+
 from oauth2u.server import database, plugins
 from oauth2u.server.handlers.register import register
 import oauth2u.tokens
@@ -20,9 +22,14 @@ class AuthorizationHandler(BaseRequestHandler):
     
     '''
 
+    def initialize(self, **kwargs):
+        self.code = None
+        self.client_id = None
+        self.redirect_uri = None
+        self.response_type = None
+
     def get(self):
-        self.validate_arguments()
-        self.load_arguments()
+        self.load_parameters()
         self.create_authorization_token()
         self.save_client_tokens()
         if not plugins.call('authorization-GET', self):
@@ -32,22 +39,43 @@ class AuthorizationHandler(BaseRequestHandler):
         if not plugins.call('authorization-POST', self):
             self.raise_http_error(405)
 
-    def validate_arguments(self):
-        ''' Currently only ``code`` is supported '''
-        self.require_argument('response_type', 'code')
+    def load_parameters(self):
+        self.load_redirect_uri_parameter()
+        self.load_response_type_parameter()
+        self.load_client_id_parameter()
 
-    def load_arguments(self):
-        self.client_id = self.require_argument('client_id')
-        self.redirect_uri = self.require_argument('redirect_uri')
+    def load_redirect_uri_parameter(self):
+        self.redirect_uri = self.get_argument('redirect_uri', None)
+        if self.redirect_uri is None:
+            self.raise_http_400({'error': 'invalid_request',
+                                 'error_description': 'Parameter redirect_uri is required'})
+
+    def load_response_type_parameter(self):
+        self.response_type = self.get_argument('response_type', None)
+        if self.response_type is None:
+            self.raise_http_302({'error': 'invalid_request',
+                                 'error_description': 'Parameter response_type is required'})
+
+        if self.response_type != 'code':
+            self.raise_http_302({'error': 'invalid_request',
+                                 'error_description': 'Invalid response_type parameter'})
+    
+    def load_client_id_parameter(self):
+        self.client_id = self.get_argument('client_id', None)
+        if self.client_id is None:
+            self.raise_http_302({'error': 'invalid_request',
+                                 'error_description': 'Parameter client_id is required'})
 
     def create_authorization_token(self):
         self.code = oauth2u.tokens.generate_authorization_code()
 
     def redirect_with_token(self):
-        self.redirect(self.build_redirect_uri())
+        self.redirect(self.build_success_redirect_uri())
 
-    def build_redirect_uri(self):
-        params = {'code': self.code}
+    def build_success_redirect_uri(self):
+        return self.build_redirect_uri({'code': self.code})
+
+    def build_redirect_uri(self, params):
         prefix = '?' if '?' not in self.redirect_uri else '&'
         return self.redirect_uri + prefix + urllib.urlencode(params)
 
@@ -56,7 +84,7 @@ class AuthorizationHandler(BaseRequestHandler):
             self.code,
             self.client_id,
             redirect_uri=self.redirect_uri,
-            redirect_uri_with_code=self.build_redirect_uri())
+            redirect_uri_with_code=self.build_success_redirect_uri())
 
 
 @register(r'/access-token')

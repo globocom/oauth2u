@@ -4,6 +4,7 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
     def require_argument(self, name, expected_value=None):
         value = self.get_argument(name, None)
+
         if value is None:
             self.raise_http_400({'error': 'invalid_request',
                                  'error_description': u'Parameter {0} is required'.format(name)})
@@ -28,6 +29,10 @@ class BaseRequestHandler(tornado.web.RequestHandler):
                                  'error_description': u'Header {0} should start with "{1}"'.format(name, startswith)})
 
         return value
+
+    def raise_http_302(self, query_parameters):
+        headers = {'Location': self.build_redirect_uri(query_parameters)}
+        self.raise_http_error(302, headers=headers)
 
     def raise_http_400(self, response_body):
         self.raise_http_error(400, response_body)
