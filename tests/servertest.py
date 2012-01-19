@@ -11,14 +11,19 @@ Token generation is stubbed to produce deterministic values.
 
 import sys
 import urllib
+import uuid
 from os.path import dirname, join, abspath
 
 import oauth2u
 import oauth2u.tokens
 
-oauth2u.tokens.generate_authorization_code = lambda: 'am3jah7dl'
-oauth2u.tokens.generate_access_token = lambda: '321-access-token'
+def build():
+    import random
+    return 'authorization-code-{0}'.format(random.randint(1,1000))
 
+# oauth2u.tokens.generate_authorization_code = lambda: 'authorization-code-{0}'.format(str(uuid.uuid4()))
+oauth2u.tokens.generate_access_token = lambda: 'access-token-{0}'.format(str(uuid.uuid4()))
+oauth2u.tokens.generate_authorization_code = build
 
 if __name__ == '__main__':
     plugins = abspath(join(dirname(__file__), 'server', 'plugins_to_test'))

@@ -131,7 +131,7 @@ def test_should_generate_tokens_using_generate_authorization_token_function():
                                'response_type': 'code',
                                'redirect_uri': 'http://callback'})
     resp = requests.get(url, allow_redirects=False)
-    assert 'http://callback?code=am3jah7dl' == resp.headers['Location']
+    assert resp.headers['Location'].startswith('http://callback?code=authorization-code-')
 
 
 #
@@ -241,13 +241,11 @@ def test_happy_path_should_return_access_token_if_valid_authorization_code():
         }
 
     resp = requests.post(url, headers=valid_headers)
+    body = parse_json_response(resp)
 
     assert 200 == resp.status_code
-    assert 'application/json; charset=UTF-8' == resp.headers['content-type']
-
-    body = json.loads(resp.content)
     assert ['access_token', 'expires_in'] == body.keys()
-    assert '321-access-token' == body['access_token']
+    assert body['access_token'].startswith('access-token-')
 
 
 # all possible errors for access token request
@@ -321,20 +319,51 @@ def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
 
 
 def test_should_return_invalid_grant_if_duplicate_access_token_request_with_same_authorization_grant():
-    client_id = 'client1'
-    code = request_authorization_code(client_id)
-
+    code = request_authorization_code('client-id')
     url = build_access_token_url({'grant_type': 'authorization_code',
                                   'code': code,
                                   'redirect_uri': 'http://callback'})
-
     valid_headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Authorization': build_basic_authorization_header(client_id, code)
+        'Authorization': build_basic_authorization_header('client-id', code)
         }
 
     resp = requests.post(url, headers=valid_headers)
     assert 200 == resp.status_code
-
-    assert_invalid_grant(url, 'authorization grant already used', 'POST',
+    # performs a new POST to get the access token, but it has already been taken
+    assert_invalid_grant(url, 'Authorization grant already used', 'POST',
                          valid_headers)
+
+
+# multiple users authenticating from the same client
+
+def test_multiple_users_should_be_able_to_authenticate_using_the_same_client():
+    bob_code = request_authorization_code('client-id')
+    ted_code = request_authorization_code('client-id')
+
+    bob_url = build_access_token_url({'grant_type': 'authorization_code',
+                                      'code': bob_code,
+                                      'redirect_uri': 'http://callback'})
+    ted_url = build_access_token_url({'grant_type': 'authorization_code',
+                                      'code': ted_code,
+                                      'redirect_uri': 'http://callback'})
+
+    bob_response = requests.post(bob_url, headers={
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Authorization': build_basic_authorization_header('client-id', bob_code)
+            })
+    ted_response = requests.post(ted_url, headers={
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Authorization': build_basic_authorization_header('client-id', ted_code)
+            })
+
+    assert 200 == bob_response.status_code
+    assert 200 == ted_response.status_code
+
+    bob_json = parse_json_response(bob_response)
+    ted_json = parse_json_response(ted_response)
+
+    assert ['access_token', 'expires_in'] == bob_json.keys()
+    assert ['access_token', 'expires_in'] == ted_json.keys()
+
+    assert bob_json['access_token'] != ted_json['access_token']

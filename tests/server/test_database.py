@@ -5,33 +5,35 @@ def test_find_client_return_None_if_no_client_id_found():
     assert database.find_client('no-client-id') is None
 
 
-def test_should_save_and_retrieve_clients_informations():
-    client_information =  {
-        'authorization_code': 'authorization-code',
-        'authorization_code_generation_date': datetime.datetime.utcnow(),
-        'redirect_uri': 'http://example.com/redirect-uri',
-        'redirect_uri_with_code': 'http://example.com/redirect-uri?code=authorization-code'
-        }
+def test_should_save_and_retrieve_client_authorization_code():
+    assert not database.find_client('client-id')
 
-    database.save_client_information('client-id-1', **client_information)
-    assert client_information == database.find_client('client-id-1')
+    database.save_new_authorization_code(
+        'auth-code-1nmb21', 'client-id',
+        'http://example.com/return',
+        'http://example.com/return?code=auth-code-1nmb21')
+
+    assert database.find_client('client-id')
+    assert 1 == database.client_authorization_codes_count('client-id')
+    assert database.client_has_authorization_code('client-id', 'auth-code-1nmb21')
 
 
-def new_client_authorization_code_are_not_marked_as_used():
-    database.save_client_information('client-id-1', 
-                                     'authorization-code',
-                                     datetime.datetime.utcnow(),
-                                     'http://example.com/redirect-uri',
-                                     'http://example.com/redirect-uri?code=authorization-code')
-    assert not database.is_authorization_code_used('client-id-1')
+def test_new_client_authorization_code_are_not_marked_as_used():
+    database.save_new_authorization_code(
+        'auth-code-1nmb21', 'client-id',
+        'http://example.com/return',
+        'http://example.com/return?code=auth-code-1nmb21')
+
+    assert database.client_has_authorization_code('client-id', 'auth-code-1nmb21')
+    assert not database.is_client_authorization_code_used('client-id', 'auth-code-1nmb21')
 
 
 def test_should_mark_client_authorization_code_as_used():
-    database.save_client_information('client-id-1', 
-                                     'authorization-code',
-                                     datetime.datetime.utcnow(),
-                                     'http://example.com/redirect-uri',
-                                     'http://example.com/redirect-uri?code=authorization-code')
-    database.mark_authorization_code_as_used('client-id-1')
+    database.save_new_authorization_code(
+        'auth-code-1nmb21', 'client-id',
+        'http://example.com/return',
+        'http://example.com/return?code=auth-code-1nmb21')
+    database.mark_client_authorization_code_as_used('client-id', 'auth-code-1nmb21')
 
-    assert database.is_authorization_code_used('client-id-1')
+    assert database.client_has_authorization_code('client-id', 'auth-code-1nmb21')
+    assert database.is_client_authorization_code_used('client-id', 'auth-code-1nmb21')
