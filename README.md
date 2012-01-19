@@ -103,7 +103,7 @@ Example:
 Read the tornado docs for more information on Request Handlers
 
 
-## How to contribue
+# How to contribue
 
 1. Create a fork on github: https://github.com/igorsobreira/oauth2u
 
@@ -122,6 +122,5 @@ Read the tornado docs for more information on Request Handlers
 5. Send a pull request
 
 6. Your commits must have tests, we have 100% coverage, so any code without 
-   tests is not welcome :)
-   If your modifications change API or adds a new feature, must update the
-   documentation.
+   tests is not welcome :).
+   If your changes modifies API or adds a new feature, you must update the docs too
