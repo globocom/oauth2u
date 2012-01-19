@@ -3,6 +3,20 @@ import requests
 from tests.helpers import build_authorize_url
 from asserts import *
 
+# happy path!
+
+def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
+    # the default behaviour is to redirect, it can be customized using
+    # plugins. see usage on oauth2u/tests/server/test_plugins.py and 
+    # oauth2u/examples/
+    url = build_authorize_url({'client_id': '123',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.get(url, allow_redirects=False)
+    assert 302 == resp.status_code
+    assert resp.headers['Location'].startswith('http://callback?code=')
+
+
 # validate required GET arguments
 
 def test_should_require_response_type_argument():
@@ -26,17 +40,7 @@ def test_should_require_redirect_uri_argument():
     assert_required_argument(url, 'redirect_uri')
 
 
-def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
-    # the default behaviour is to redirect, it can be customized using
-    # plugins. see usage on oauth2u/tests/server/test_plugins.py and 
-    # oauth2u/examples/
-    url = build_authorize_url({'client_id': '123',
-                               'response_type': 'code',
-                               'redirect_uri': 'http://callback'})
-    resp = requests.get(url, allow_redirects=False)
-    assert 302 == resp.status_code
-    assert resp.headers['Location'].startswith('http://callback?code=')
-
+# check Location header
 
 def test_should_keep_get_query_string_from_redirect_uri_when_adding_code_parameter():
     url = build_authorize_url({'client_id': '123',
@@ -54,3 +58,12 @@ def test_should_generate_tokens_using_generate_authorization_token_function():
                                'redirect_uri': 'http://callback'})
     resp = requests.get(url, allow_redirects=False)
     assert resp.headers['Location'].startswith('http://callback?code=authorization-code-')
+
+
+def test_should_return_405_on_post_default_behaviour():
+    # it could be customized using plugins
+    url = build_authorize_url({'client_id': '123',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.post(url)
+    assert 405 == resp.status_code

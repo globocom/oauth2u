@@ -29,7 +29,8 @@ class AuthorizationHandler(BaseRequestHandler):
             self.redirect_with_token()
 
     def post(self):
-        plugins.call('authorization-POST', self)
+        if not plugins.call('authorization-POST', self):
+            self.raise_http_error(405)
 
     def validate_arguments(self):
         ''' Currently only ``code`` is supported '''

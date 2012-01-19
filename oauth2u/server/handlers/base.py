@@ -36,7 +36,7 @@ class BaseRequestHandler(tornado.web.RequestHandler):
         self.raise_http_error(401, response_body,
                               {'WWW-Authenticate': 'Basic realm="OAuth 2.0 Secure Area"'})
 
-    def raise_http_error(self, status, response_body, headers=None):
+    def raise_http_error(self, status, response_body=None, headers=None):
         error = tornado.web.HTTPError(status, '')
         error.response_body = response_body
         error.headers = headers or {}
@@ -44,7 +44,8 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
     def get_error_html(self, status_code, exception, **kwargs):
         ''' Called by tornado to fill error response body '''
-        self.write(exception.response_body)
+        if exception.response_body:
+            self.write(exception.response_body)
 
         for name, value in getattr(exception, 'headers', {}).items():
             self.set_header(name, value)
