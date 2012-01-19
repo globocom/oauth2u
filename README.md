@@ -38,7 +38,9 @@ there are some pre-defined plugins called on specific parts of the server.
 
 #### Using
 
-##### authorization-GET
+TODO
+
+##### `authorization-GET`
 
 - __Parameters__
  - `handler`: tornado Request Handler reference
@@ -53,7 +55,7 @@ without any specific verification.
 There is an example usage on how to build a login windown using this plugin
 and `authorization-POST` on [examples folder](https://github.com/igorsobreira/oauth2u/blob/master/examples/server_with_plugin_to_login.py)
 
-##### authorization-POST
+##### `authorization-POST`
 
 - __Parameters__
  - `handler`: tornado Request Handler reference
@@ -62,7 +64,7 @@ Is called on the Authorization Request handler POST HTTP method. There is
 not default behaviour, if no plugins is registered a `405` status code response is
 generated
 
-##### access-token-response
+##### `access-token-response`
 
 - __Parameters__
  - `handler`: tornado Request Handler reference
