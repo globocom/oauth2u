@@ -91,21 +91,19 @@ def assert_required_redirect_parameter(url, redirect_uri, parameter):
     assert_redirect_parameters(url, redirect_uri, expected_params)
 
 def assert_redirect_parameters(url, redirect_uri, expected_params):
-    resp = requests.get(url, allow_redirects=False)
-
-    assert 302 == resp.status_code
-
-    host, params = parse_query_string(resp.headers['Location'])
-
+    host, params = get_parameters_from_redirect(url)
     assert redirect_uri == host
     assert expected_params == params
 
 def assert_redirect_parameters_keys(url, redirect_uri, parameters_keys):
-    resp = requests.get(url, allow_redirects=False)
+    host, params = get_parameters_from_redirect(url)
+    assert redirect_uri == host
+    assert parameters_keys == params.keys()
 
+
+def get_parameters_from_redirect(url):
+    resp = requests.get(url, allow_redirects=False)
     assert 302 == resp.status_code
 
     host, params = parse_query_string(resp.headers['Location'])
-
-    assert redirect_uri == host
-    assert parameters_keys == params.keys()
+    return host, params

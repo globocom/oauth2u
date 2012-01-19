@@ -30,6 +30,10 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
         return value
 
+    def raise_http_302(self, query_parameters):
+        headers = {'Location': self.build_redirect_uri(query_parameters)}
+        self.raise_http_error(302, headers=headers)
+
     def raise_http_400(self, response_body):
         self.raise_http_error(400, response_body)
 
