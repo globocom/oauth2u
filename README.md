@@ -1,7 +1,7 @@
 # OAuth 2 server and client implementation
 
 This project aims to implement the complete
-(OAuth 2.0 Authorization Protocol Specification)[http://tools.ietf.org/html/draft-ietf-oauth-v2-22].
+[OAuth 2.0 Authorization Protocol Specification](http://tools.ietf.org/html/draft-ietf-oauth-v2-22).
 
 
 # Server
