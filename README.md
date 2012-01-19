@@ -103,7 +103,7 @@ Example:
 Read the tornado docs for more information on Request Handlers
 
 
-# How to contribue
+# How to contribute
 
 - Create a fork on github: https://github.com/igorsobreira/oauth2u
 
