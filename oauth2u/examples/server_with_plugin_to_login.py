@@ -28,6 +28,7 @@ def ask_user_credentials(handler):
     # in the default handler, so we need to query the tokens generated on GET
     # using the client_id
     handler.set_secure_cookie('client_id', handler.client_id)
+    handler.set_secure_cookie('code', handler.code)
 
     # show the login form
     handler.write('<h1>Inform your username and password</h1>'
@@ -50,13 +51,16 @@ def validate_user_credentials(handler):
 
     '''
     client_id = handler.get_secure_cookie('client_id')
+    code = handler.get_secure_cookie('code')
 
     credentials = (handler.get_argument('username',''),
                    handler.get_argument('password',''))
 
-    if credentials == ('admin', 'admin'):
-        client = database.find_client(client_id)
-        handler.redirect(client['redirect_uri_with_code'])
+    if not database.client_has_authorization_code(client_id, code):
+        handler.write('<p>No authorization code created to this client_id</p>')
+    elif credentials == ('admin', 'admin'):
+        uri = database.get_redirect_uri_with_code(client_id, code)
+        handler.redirect(uri)
     else:
         handler.write('<p>Invalid username and/or password</p>'
                       '<p><em>hint: try "admin" and "admin"</em></p>'
