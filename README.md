@@ -1,7 +1,7 @@
 # OAuth 2 server and client implementation
 
 This project aims to implement the complete
-(OAuth 2.0 Authorization Protocol Specification)(http://tools.ietf.org/html/draft-ietf-oauth-v2-22).
+(OAuth 2.0 Authorization Protocol Specification)[http://tools.ietf.org/html/draft-ietf-oauth-v2-22].
 
 
 # Server
@@ -40,10 +40,6 @@ It's similar to a Template Method pattern, but doesn't require you to extend
 
 You cannot create new plugins, unless you want to call them yourself. But
 there are some pre-defined plugins called on specific parts of the server.
-
-#### Using
-
-TODO
 
 ##### `authorization-GET`
 
