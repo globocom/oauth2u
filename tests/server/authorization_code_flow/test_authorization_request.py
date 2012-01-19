@@ -51,33 +51,34 @@ def test_should_require_client_id_parameter():
     assert_required_redirect_parameter(url, 'http://callback/return',
                                            'client_id')
 
-# # check Location header
+# check Location header
 
-# def test_should_keep_get_query_string_from_redirect_uri_when_adding_code_parameter():
-#     url = build_authorize_url({'client_id': '123',
-#                          'response_type': 'code',
-#                          'redirect_uri': 'http://callback?param1=value1'})
-#     resp = requests.get(url, allow_redirects=False)
-#     assert 302 == resp.status_code
-#     assert resp.headers['Location'].startswith('http://callback?param1=value1&code=')
+def test_should_keep_get_query_string_from_redirect_uri_when_adding_code_parameter():
+    url = build_authorize_url({'client_id': 'client-id',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback?param1=value1'})
+    resp = requests.get(url, allow_redirects=False)
 
-
-# def test_should_generate_tokens_using_generate_authorization_token_function():
-#     # tokens generation is stubbed in tests/helpers.py
-#     url = build_authorize_url({'client_id': '123',
-#                                'response_type': 'code',
-#                                'redirect_uri': 'http://callback'})
-#     resp = requests.get(url, allow_redirects=False)
-#     assert resp.headers['Location'].startswith('http://callback?code=authorization-code-')
+    assert 302 == resp.status_code
+    assert resp.headers['Location'].startswith('http://callback?param1=value1&code=')
 
 
-# def test_should_return_405_on_post_default_behaviour():
-#     # it could be customized using plugins
-#     url = build_authorize_url({'client_id': '123',
-#                                'response_type': 'code',
-#                                'redirect_uri': 'http://callback'})
-#     resp = requests.post(url)
-#     assert 405 == resp.status_code
+def test_should_generate_tokens_using_generate_authorization_token_function():
+    # tokens generation is stubbed in tests/helpers.py
+    url = build_authorize_url({'client_id': '123',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.get(url, allow_redirects=False)
+    assert resp.headers['Location'].startswith('http://callback?code=authorization-code-')
+
+
+def test_should_return_405_on_post_default_behaviour():
+    # it could be customized using plugins
+    url = build_authorize_url({'client_id': '123',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.post(url)
+    assert 405 == resp.status_code
 
 
 # custom asserts
