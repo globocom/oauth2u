@@ -4,6 +4,9 @@ parallel = true
 source = 
        oauth2u
 
+omit =
+     oauth2u/client.py
+
 [report]
 ignore_errors = true
 precision = 2
