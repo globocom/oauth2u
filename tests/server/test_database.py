@@ -39,10 +39,19 @@ def test_should_mark_client_authorization_code_as_used():
     assert database.is_client_authorization_code_used('client-id', 'auth-code-1nmb21')
 
 
-def test_get_redirect_uri_with_code_should_expect_client_id_and_auth_code():
+def test_should_get_redirect_uri_with_code_given_client_id_and_authorization_code():
     database.save_new_authorization_code(
         'auth-code', 'client-id',
         'http://example.com/return',
         'http://example.com/return?code=auth-code')
     uri = database.get_redirect_uri_with_code('client-id', 'auth-code')
     assert 'http://example.com/return?code=auth-code' == uri
+
+
+def test_should_get_redirect_uri_given_client_id_and_authorization_code():
+    database.save_new_authorization_code(
+        'auth-code', 'client-id',
+        'http://example.com/return',
+        'http://example.com/return?code=auth-code')
+    uri = database.get_redirect_uri('client-id', 'auth-code')
+    assert 'http://example.com/return' == uri

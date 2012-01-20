@@ -30,3 +30,6 @@ def client_has_redirect_uri_for_code(client_id, auth_code, redirect_uri):
 
 def get_redirect_uri_with_code(client_id, auth_code):
     return DATABASE[client_id]['authorization_codes'][auth_code]['redirect_uri_with_code']
+
+def get_redirect_uri(client_id, auth_code):
+    return DATABASE[client_id]['authorization_codes'][auth_code]['redirect_uri']
