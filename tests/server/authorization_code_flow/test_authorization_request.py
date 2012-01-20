@@ -15,6 +15,35 @@ def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
                                'redirect_uri': 'http://callback'})
     assert_redirect_parameters_keys(url, 'http://callback', ['code'])
 
+def test_should_redirect_to_redirect_uri_with_access_denied_from_plugin():
+    http = requests.session()
+
+    # there is a plugin on 'authorization-GET' to ask for user permission
+    # and a plugin on 'authorization-POST' to simulate a redirect to 
+    # success or error, if user allowed of denied
+    url = build_authorize_url({'client_id': 'client-id-access-denied',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = http.get(url, allow_redirects=False)
+
+    # make sure GET plugin works and no default redirect is done
+
+    assert 200 == resp.status_code
+    assert 'Hello resource owner, do you allow this client to access your resources?' in resp.content
+
+    # simulares a POST denying access from user
+    resp = http.post(url, data={'allow': 'no'})
+    assert 302 == resp.status_code
+
+    expected_params = {
+        'code': 'access_denied',
+        'error_description': 'The resource owner or authorization server denied the request'
+        }
+    url, params = parse_query_string(resp.headers['location'])
+    assert 'http://callback' == url
+    assert expected_params == params
+
+
 # validate required GET parameters
 
 def test_should_require_redirect_uri_parameter():
