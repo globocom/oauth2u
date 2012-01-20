@@ -1,5 +1,10 @@
 #!/bin/bash
 
+function clear {
+    find . -name *.pyc -delete
+    find . -name __pycache__ -delete
+}
+
 function install_test_deps {
     pip install pytest requests coverage
 }
@@ -11,6 +16,7 @@ function start_test_server {
 }
 
 function run_tests {
+    clear
     install_test_deps
     start_test_server
     coverage run -p `which py.test` -s tests/ $@
