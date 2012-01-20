@@ -13,7 +13,7 @@ function start_test_server {
 function run_tests {
     install_test_deps
     start_test_server
-    coverage run -p `which py.test` -vs tests/ $@
+    coverage run -p `which py.test` -s tests/ $@
     exit_code=$?
     stop_test_server
     coverage combine
