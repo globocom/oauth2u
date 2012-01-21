@@ -36,21 +36,21 @@ def test_happy_path_should_return_access_token_if_valid_authorization_code():
 
 def test_should_require_content_type_header():
     response = requests.post(URL)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Header content-type is required')
 
 
 def test_should_require_content_type_header_to_be_x_wwww_form_urlencoded():
     response = requests.post(URL, headers={'Content-Type': 'text/plain'})
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Header content-type should be '+CONTENT_TYPE)
 
 
 def test_should_require_authorization_header():
     response = requests.post(URL, headers={'Content-Type': CONTENT_TYPE})
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Header authorization is required')
 
@@ -58,7 +58,7 @@ def test_should_require_authorization_header():
 def test_authorization_header_should_be_basic():
     response = requests.post(URL, headers={'Content-Type': CONTENT_TYPE,
                                            'Authorization': 'Invalid Basic Header'})
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Header authorization should start with "Basic "')
 
@@ -74,7 +74,7 @@ def test_should_return_400_with_invalid_request_error_if_base64_header_could_not
         'Authorization': 'Basic this-is-not-base-64',
         }
     response = requests.post(URL, data=data, headers=invalid_headers)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Base 64 from Authorization header could not be decoded')
 
@@ -89,7 +89,7 @@ def test_should_return_400_with_invalid_request_error_if_base64_header_is_not_in
 
 def test_should_require_grant_type_argument():
     response = requests.post(URL, data={}, headers=HEADERS)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Parameter grant_type is required')
 
@@ -97,7 +97,7 @@ def test_should_require_grant_type_argument():
 def test_should_require_grant_type_argument_to_be_authorization_code():
     response = requests.post(URL, data={'grant_type': 'invalid'},
                              headers=HEADERS)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Parameter grant_type should be authorization_code')
 
@@ -105,7 +105,7 @@ def test_should_require_grant_type_argument_to_be_authorization_code():
 def test_should_require_code_argument():
     response = requests.post(URL, data={'grant_type': 'authorization_code'},
                              headers=HEADERS)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Parameter code is required')
 
@@ -114,7 +114,7 @@ def test_should_require_redirect_uri_argument():
     response = requests.post(URL, data={'grant_type': 'authorization_code',
                                         'code': 'foo'},
                              headers=HEADERS)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_request',
                           'Parameter redirect_uri is required')
 
@@ -169,7 +169,7 @@ def test_should_return_400_with_invalid_grant_error_if_code_from_body_was_not_fo
         'Authorization': build_basic_authorization_header('client-id', code)
         }
     response = requests.post(URL, data=data, headers=valid_headers)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_grant',
                           'Invalid code for this client')
 
@@ -189,7 +189,7 @@ def test_should_return_invalid_grant_error_if_redirect_uri_is_invalid():
         'Authorization': build_basic_authorization_header('client-id', code)
         }
     response = requests.post(URL, data=data, headers=valid_headers)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_grant',
                           'redirect_uri does not match')
 
@@ -210,7 +210,7 @@ def test_should_return_invalid_grant_if_duplicate_access_token_request_with_same
     assert_valid_access_token(response)
 
     response = requests.post(URL, data=data, headers=valid_headers)
-    assert_error_response(response,
+    assert_error_response_body(response,
                           'invalid_grant',
                           'Authorization grant already used')
 

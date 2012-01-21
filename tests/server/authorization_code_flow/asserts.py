@@ -3,7 +3,7 @@ import json
 from tests.helpers import parse_json_response
 
 __all__ = ('assert_valid_access_token',
-           'assert_error_response',
+           'assert_error_response_body',
            'assert_unauthorized',
            'assert_has_no_cache_headers')
 
@@ -17,7 +17,7 @@ def assert_valid_access_token(response):
     assert 'bearer' == body['token_type']
     assert_has_no_cache_headers(response)
 
-def assert_error_response(response, error, error_description):
+def assert_error_response_body(response, error, error_description):
     body = parse_json_response(response)
     expected_body = {
         'error': error,
