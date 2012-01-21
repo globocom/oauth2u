@@ -7,7 +7,18 @@ from functools import partial
 
 import requests
 
+__all__ = ('TEST_SERVER_HOST',
+           'build_root_url',
+           'build_basic_authorization_header',
+           'build_access_token_url',
+           'parse_json_response',
+           'parse_query_string',
+           'get_code_from_url',
+           'request_authorization_code')
+
+
 TEST_SERVER_HOST = 'http://localhost:8888'
+
 
 def build_url(host, path, query=None):
     query = query or {}
@@ -15,8 +26,8 @@ def build_url(host, path, query=None):
                                  path.lstrip('/'),
                                  urllib.urlencode(query))
 
-build_root_url = partial(build_url, TEST_SERVER_HOST)
 
+build_root_url = partial(build_url, TEST_SERVER_HOST)
 build_authorize_url = partial(build_url, TEST_SERVER_HOST, '/authorize')
 build_access_token_url = partial(build_url, TEST_SERVER_HOST, '/access-token')
 
@@ -56,4 +67,3 @@ def build_basic_authorization_header(client_id, code):
     ''' Build the value for a Basic ``Authorization`` HTTP header '''
     digest = base64.b64encode('{0}:{1}'.format(client_id, code))
     return 'Basic {0}'.format(digest)
-
