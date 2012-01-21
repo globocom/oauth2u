@@ -110,6 +110,31 @@ def test_should_return_405_on_post_default_behaviour():
     assert 405 == resp.status_code
 
 
+# plugins
+# test plugins are registered on tests/server/plugins_to_test
+
+def test_using_authorization_GET_plugin_to_execute_on_authorization_request_GET_method():
+    url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://example.com/return'})
+    resp = requests.get(url, allow_redirects=False)
+
+    assert 200 == resp.status_code
+    assert u"I'm a dummy plugin doing nothing on GET" == resp.content
+
+
+def test_using_authorization_POST_plugin_to_execute_on_authorization_request_POST_method():
+    http = requests.session()
+    url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://example.com/return'})
+    http.get(url)
+    resp = http.post(url)
+
+    assert 200 == resp.status_code
+    assert u"I'm a dummy plugin doing nothing on POST" == resp.content
+
+
 # custom asserts
 
 def assert_required_redirect_parameter(url, redirect_uri, parameter):
