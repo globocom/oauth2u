@@ -36,7 +36,7 @@ def assert_error_redirect_params(response, redirect_uri, error, error_descriptio
 
     url, params = parse_query_string(response.headers['location'])
     expected_params = {
-        'code': error,
+        'error': error,
         'error_description': error_description
         }
 

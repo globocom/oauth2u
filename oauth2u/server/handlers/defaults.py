@@ -66,7 +66,7 @@ class AuthorizationHandler(BaseRequestHandler):
     def redirect_access_denied(self, client_id, code):
         ''' Redirects the user back to ``redirect_uri`` with access_denied error '''
         error = {
-            'code': 'access_denied', # FIXME: the correct key is 'error', not 'code'!
+            'error': 'access_denied', # FIXME: the correct key is 'error', not 'code'!
             'error_description': 'The resource owner or authorization server denied the request'
             }
         redirect_uri = database.get_redirect_uri(client_id, code)
