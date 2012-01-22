@@ -1,6 +1,9 @@
 import json
 
-from tests.helpers import parse_json_response
+import pytest
+
+from tests.helpers import parse_json_response, parse_query_string
+
 
 __all__ = ('assert_valid_access_token',
            'assert_error_response_body',
@@ -28,6 +31,18 @@ def assert_error_response_body(response, error, error_description):
     assert expected_body == body
     assert_has_no_cache_headers(response)
 
+def assert_error_redirect_params(response, redirect_uri, error, error_description):
+    assert_status_code(response, 302)
+
+    url, params = parse_query_string(response.headers['location'])
+    expected_params = {
+        'code': error,
+        'error_description': error_description
+        }
+
+    assert redirect_uri == url
+    assert expected_params == params
+
 def assert_unauthorized(response):
     expected_response = {
         'error': 'invalid_client',
@@ -41,3 +56,14 @@ def assert_unauthorized(response):
 def assert_has_no_cache_headers(response):
     assert 'no-store' == response.headers.get('Cache-Control')
     assert 'no-cache' == response.headers.get('Pragma')
+
+def assert_status_code(response, status_code):
+    if response.status_code != status_code:
+        pytest.fail("Invalid response code {0} on '{1}' should be {2}.\n"
+                    "response body: '{3}'\n"
+                    "response headers: {4}"
+                    .format(response.status_code,
+                            response.url,
+                            status_code,
+                            response.content,
+                            response.headers))

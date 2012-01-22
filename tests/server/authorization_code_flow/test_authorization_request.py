@@ -2,6 +2,7 @@ import requests
 
 from tests.helpers import (build_authorize_url, parse_query_string,
                            parse_json_response)
+from asserts import assert_error_redirect_params, assert_status_code
 
 # happy paths!
 
@@ -14,34 +15,6 @@ def test_should_redirect_to_redirect_uri_argument_passing_auth_token():
                                'response_type': 'code',
                                'redirect_uri': 'http://callback'})
     assert_redirect_parameters_keys(url, 'http://callback', ['code'])
-
-def test_should_redirect_to_redirect_uri_with_access_denied_from_plugin():
-    http = requests.session()
-
-    # there is a plugin on 'authorization-GET' to ask for user permission
-    # and a plugin on 'authorization-POST' to simulate a redirect to 
-    # success or error, if user allowed of denied
-    url = build_authorize_url({'client_id': 'client-id-access-denied',
-                               'response_type': 'code',
-                               'redirect_uri': 'http://callback'})
-    resp = http.get(url, allow_redirects=False)
-
-    # make sure GET plugin works and no default redirect is done
-
-    assert 200 == resp.status_code
-    assert 'Hello resource owner, do you allow this client to access your resources?' in resp.content
-
-    # simulares a POST denying access from user
-    resp = http.post(url, data={'allow': 'no'})
-    assert 302 == resp.status_code
-
-    expected_params = {
-        'code': 'access_denied',
-        'error_description': 'The resource owner or authorization server denied the request'
-        }
-    url, params = parse_query_string(resp.headers['location'])
-    assert 'http://callback' == url
-    assert expected_params == params
 
 
 # validate required GET parameters
@@ -113,26 +86,43 @@ def test_should_return_405_on_post_default_behaviour():
 # plugins
 # test plugins are registered on tests/server/plugins_to_test
 
-def test_using_authorization_GET_plugin_to_execute_on_authorization_request_GET_method():
-    url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
-                               'response_type': 'code',
-                               'redirect_uri': 'http://example.com/return'})
-    resp = requests.get(url, allow_redirects=False)
+def test_should_redirect_to_redirect_uri_with_access_denied_from_plugin():
+    # there is a plugin on 'authorization-GET' to ask for user permission
+    # and a plugin on 'authorization-POST' to simulate a redirect to 
+    # success or error, if user allowed of denied
+    # in this test, the user will be denied (see client_id)
 
-    assert 200 == resp.status_code
-    assert u"I'm a dummy plugin doing nothing on GET" == resp.content
-
-
-def test_using_authorization_POST_plugin_to_execute_on_authorization_request_POST_method():
     http = requests.session()
-    url = build_authorize_url({'client_id': 'client-id-from-plugins-test',
+    url = build_authorize_url({'client_id': 'client-id-verify-access',
                                'response_type': 'code',
-                               'redirect_uri': 'http://example.com/return'})
-    http.get(url)
-    resp = http.post(url)
+                               'redirect_uri': 'http://callback'})
+    resp = http.get(url)
+
+    # make sure GET plugin overrides default redirect
+    assert 200 == resp.status_code
+    assert 'Hello resource owner, do you allow this client to access your resources?' in resp.content
+
+    # simulares a POST denying access from user
+    resp = http.post(url, data={'allow': 'no'})
+    assert_error_redirect_params(resp, 'http://callback',
+                                 'access_denied',
+                                 'The resource owner or authorization server denied the request')
+
+
+def test_should_redirect_to_redirect_uri_with_authorization_code_from_plugin():
+    http = requests.session()
+    url = build_authorize_url({'client_id': 'client-id-verify-access',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = http.get(url)
 
     assert 200 == resp.status_code
-    assert u"I'm a dummy plugin doing nothing on POST" == resp.content
+    assert 'Hello resource owner, do you allow this client to access your resources?' in resp.content
+
+    resp = http.post(url, data={'allow': 'yes'})
+
+    assert_status_code(resp, 302)
+    assert resp.headers['Location'].startswith('http://callback?code=authorization-code-')
 
 
 # custom asserts
@@ -153,7 +143,6 @@ def assert_redirect_parameters_keys(url, redirect_uri, parameters_keys):
     host, params = get_parameters_from_redirect(url)
     assert redirect_uri == host
     assert parameters_keys == params.keys()
-
 
 def get_parameters_from_redirect(url):
     resp = requests.get(url, allow_redirects=False)

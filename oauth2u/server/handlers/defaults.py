@@ -56,11 +56,17 @@ class AuthorizationHandler(BaseRequestHandler):
     def redirect_with_token(self):
         self.redirect(self.build_success_redirect_uri())
 
+    def redirect_access_granted(self, client_id, code):
+        ''' Redirects the user back to ``redirect_uri`` with grant code '''
+        redirect_uri = database.get_redirect_uri(client_id, code)
+        prefix = '?' if '?' not in redirect_uri else '&'
+        url = redirect_uri + prefix + urllib.urlencode({'code': code})
+        self.redirect(url)
+    
     def redirect_access_denied(self, client_id, code):
-        ''' Redirects the user back to ``redirect_uri`` with access_denied error
-        '''
+        ''' Redirects the user back to ``redirect_uri`` with access_denied error '''
         error = {
-            'code': 'access_denied',
+            'code': 'access_denied', # FIXME: the correct key is 'error', not 'code'!
             'error_description': 'The resource owner or authorization server denied the request'
             }
         redirect_uri = database.get_redirect_uri(client_id, code)

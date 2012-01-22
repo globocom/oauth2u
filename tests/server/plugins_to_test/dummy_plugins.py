@@ -21,7 +21,7 @@ def on_authorization_GET_to_test(handler):
     if handler.client_id == 'client-id-from-plugins-test':
         handler.write("I'm a dummy plugin doing nothing on GET")
 
-    elif handler.client_id == 'client-id-access-denied':
+    elif handler.client_id == 'client-id-verify-access':
         handler.write('Hello resource owner, do you allow this client to access your resources?')
 
     else:
@@ -39,10 +39,11 @@ def on_authorization_POST_to_test(handler):
     if client_id == 'client-id-from-plugins-test':
         handler.write("I'm a dummy plugin doing nothing on POST")
 
-    elif client_id == 'client-id-access-denied':
-        if handler.get_argument('allow') == 'no':
+    elif client_id == 'client-id-verify-access':
+        if handler.get_argument('allow') == 'yes':
+            handler.redirect_access_granted(client_id, code)
+        else:
             handler.redirect_access_denied(client_id, code)
-
     else:
         # keep normal if no special client_id, so other tests
         # can check default behaviour
