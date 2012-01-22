@@ -1,3 +1,5 @@
+import urlparse
+
 import requests
 
 from tests.helpers import (build_authorize_url, parse_query_string,
@@ -60,9 +62,11 @@ def test_should_keep_get_query_string_from_redirect_uri_when_adding_code_paramet
                                'response_type': 'code',
                                'redirect_uri': 'http://callback?param1=value1'})
     resp = requests.get(url, allow_redirects=False)
+    assert_status_code(resp, 302)
 
-    assert 302 == resp.status_code
-    assert resp.headers['Location'].startswith('http://callback?param1=value1&code=')
+    url_parts = urlparse.urlparse(resp.headers['location'])
+    assert 'callback' == url_parts.netloc
+    assert ['code','param1'] == urlparse.parse_qs(url_parts.query).keys()
 
 
 def test_should_generate_tokens_using_generate_authorization_token_function():

@@ -4,11 +4,10 @@ DATABASE = {}
 def find_client(client_id):
     return DATABASE.get(client_id)
 
-def save_new_authorization_code(auth_code, client_id, redirect_uri, redirect_uri_with_code):
+def save_new_authorization_code(auth_code, client_id, redirect_uri):
     DATABASE.setdefault(client_id, {})
     auth_code_info = {
         'redirect_uri': redirect_uri,
-        'redirect_uri_with_code': redirect_uri_with_code,
         }
     DATABASE[client_id].setdefault('authorization_codes', {})
     DATABASE[client_id]['authorization_codes'][auth_code] = auth_code_info
@@ -27,9 +26,6 @@ def is_client_authorization_code_used(client_id, auth_code):
 
 def client_has_redirect_uri_for_code(client_id, auth_code, redirect_uri):
     return DATABASE[client_id]['authorization_codes'][auth_code]['redirect_uri'] == redirect_uri
-
-def get_redirect_uri_with_code(client_id, auth_code):
-    return DATABASE[client_id]['authorization_codes'][auth_code]['redirect_uri_with_code']
 
 def get_redirect_uri(client_id, auth_code):
     return DATABASE[client_id]['authorization_codes'][auth_code]['redirect_uri']

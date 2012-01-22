@@ -34,7 +34,7 @@ class AuthorizationHandler(BaseRequestHandler):
         self.create_authorization_token()
         self.save_client_tokens()
         if not plugins.call('authorization-GET', self):
-            self.redirect_with_token()
+            self.redirect_access_granted(self.client_id, self.code)
 
     def post(self):
         if not plugins.call('authorization-POST', self):
@@ -54,40 +54,36 @@ class AuthorizationHandler(BaseRequestHandler):
     def create_authorization_token(self):
         self.code = oauth2u.tokens.generate_authorization_code()
 
-    def redirect_with_token(self):
-        self.redirect(self.build_success_redirect_uri())
-
     def redirect_access_granted(self, client_id, code):
-        ''' Redirects the user back to ``redirect_uri`` with grant code '''
-        redirect_uri = database.get_redirect_uri(client_id, code)
-        prefix = '?' if '?' not in redirect_uri else '&'
-        url = redirect_uri + prefix + urllib.urlencode({'code': code})
-        self.redirect(url)
+        '''
+        Redirects the user back to ``redirect_uri`` with grant code
+        '''
+        params = {'code': code}
+        self.redirect_to_redirect_uri_with_params(params, client_id, code)
     
     def redirect_access_denied(self, client_id, code):
-        ''' Redirects the user back to ``redirect_uri`` with access_denied error '''
-        error = {
-            'error': 'access_denied', # FIXME: the correct key is 'error', not 'code'!
+        '''
+        Redirects the user back to ``redirect_uri`` with access_denied error
+        '''
+        params = {
+            'error': 'access_denied',
             'error_description': 'The resource owner or authorization server denied the request'
             }
+        self.redirect_to_redirect_uri_with_params(params, client_id, code)
+
+    def redirect_to_redirect_uri_with_params(self, params, client_id, code):
         redirect_uri = database.get_redirect_uri(client_id, code)
-        prefix = '?' if '?' not in redirect_uri else '&'
-        url = redirect_uri + prefix + urllib.urlencode(error)
+        url = self.build_redirect_uri(params, redirect_uri)
         self.redirect(url)
 
-    def build_success_redirect_uri(self):
-        return self.build_redirect_uri({'code': self.code})
-
-    def build_redirect_uri(self, params):
-        prefix = '?' if '?' not in self.redirect_uri else '&'
-        return self.redirect_uri + prefix + urllib.urlencode(params)
+    def build_redirect_uri(self, params, base_url=None):
+        return add_query_to_url(base_url or self.redirect_uri, params)
 
     def save_client_tokens(self):
         database.save_new_authorization_code(
             self.code,
             self.client_id,
-            redirect_uri=self.redirect_uri,
-            redirect_uri_with_code=self.build_success_redirect_uri())
+            redirect_uri=self.redirect_uri)
 
 
 @register(r'/access-token')

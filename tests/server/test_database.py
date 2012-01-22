@@ -10,8 +10,7 @@ def test_should_save_and_retrieve_client_authorization_code():
 
     database.save_new_authorization_code(
         'auth-code-1nmb21', 'client-id',
-        'http://example.com/return',
-        'http://example.com/return?code=auth-code-1nmb21')
+        'http://example.com/return')
 
     assert database.find_client('client-id')
     assert 1 == database.client_authorization_codes_count('client-id')
@@ -21,8 +20,7 @@ def test_should_save_and_retrieve_client_authorization_code():
 def test_new_client_authorization_code_are_not_marked_as_used():
     database.save_new_authorization_code(
         'auth-code-1nmb21', 'client-id',
-        'http://example.com/return',
-        'http://example.com/return?code=auth-code-1nmb21')
+        'http://example.com/return')
 
     assert database.client_has_authorization_code('client-id', 'auth-code-1nmb21')
     assert not database.is_client_authorization_code_used('client-id', 'auth-code-1nmb21')
@@ -31,27 +29,16 @@ def test_new_client_authorization_code_are_not_marked_as_used():
 def test_should_mark_client_authorization_code_as_used():
     database.save_new_authorization_code(
         'auth-code-1nmb21', 'client-id',
-        'http://example.com/return',
-        'http://example.com/return?code=auth-code-1nmb21')
+        'http://example.com/return')
     database.mark_client_authorization_code_as_used('client-id', 'auth-code-1nmb21')
 
     assert database.client_has_authorization_code('client-id', 'auth-code-1nmb21')
     assert database.is_client_authorization_code_used('client-id', 'auth-code-1nmb21')
 
 
-def test_should_get_redirect_uri_with_code_given_client_id_and_authorization_code():
-    database.save_new_authorization_code(
-        'auth-code', 'client-id',
-        'http://example.com/return',
-        'http://example.com/return?code=auth-code')
-    uri = database.get_redirect_uri_with_code('client-id', 'auth-code')
-    assert 'http://example.com/return?code=auth-code' == uri
-
-
 def test_should_get_redirect_uri_given_client_id_and_authorization_code():
     database.save_new_authorization_code(
         'auth-code', 'client-id',
-        'http://example.com/return',
-        'http://example.com/return?code=auth-code')
+        'http://example.com/return')
     uri = database.get_redirect_uri('client-id', 'auth-code')
     assert 'http://example.com/return' == uri
