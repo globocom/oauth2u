@@ -36,6 +36,7 @@ def ask_user_credentials(handler):
                   '<p> Username: <input type="text" name="username" /> </p>'
                   '<p> Password: <input type="password" name="password" /> </p>'
                   '<p>The application {0} wants to access your information, do you allow?</p>'
+                  '<p> Yes, I do <input type="checkbox" name="allow" /> </p>'
                   '<button type="submit">Allow</button>'.format(handler.client_id))
 
 
@@ -56,11 +57,15 @@ def validate_user_credentials(handler):
     credentials = (handler.get_argument('username',''),
                    handler.get_argument('password',''))
 
+    allow = (handler.get_argument('allow','off') == 'on')
+
     if not database.client_has_authorization_code(client_id, code):
         handler.write('<p>No authorization code created to this client_id</p>')
     elif credentials == ('admin', 'admin'):
-        uri = database.get_redirect_uri_with_code(client_id, code)
-        handler.redirect(uri)
+        if allow:
+            handler.redirect_access_granted(client_id, code)
+        else:
+            handler.redirect_access_denied(client_id, code)
     else:
         handler.write('<p>Invalid username and/or password</p>'
                       '<p><em>hint: try "admin" and "admin"</em></p>'
