@@ -59,6 +59,15 @@ def test_registered_handler_should_work_as_a_normal_url_handler():
 def test_should_return_405_for_not_implemented_methods_on_default_handlers():
     assert 0
 
+
+def test_add_query_to_url_should_add_more_query_params_to_url():
+    url = 'http://www.example.com/path?name=value'
+    params = {'foo': 'bar'}
+
+    result = handlers.add_query_to_url(url, params)
+    assert 'http://www.example.com/path?foo=bar&name=value' == result
+
+
 # custom asserts
 
 def assert_no_url_handler_for(url):

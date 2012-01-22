@@ -1,5 +1,6 @@
 # coding: utf-8
 import urllib
+import urlparse
 import base64
 import datetime
 import re
@@ -12,7 +13,7 @@ import oauth2u.tokens
 
 from .base import BaseRequestHandler
 
-__all__ = 'AuthorizationHandler', 'AccessTokenHandler'
+__all__ = 'AuthorizationHandler', 'AccessTokenHandler', 'add_query_to_url'
 
 @register(r'/authorize')
 class AuthorizationHandler(BaseRequestHandler):
@@ -167,3 +168,14 @@ class AccessTokenHandler(BaseRequestHandler):
     def set_default_headers(self):
         self.set_header('Cache-Control', 'no-store')
         self.set_header('Pragma', 'no-cache')
+
+
+def add_query_to_url(url, params):
+    parts = urlparse.urlparse(url)
+    query = dict(urlparse.parse_qsl(parts.query))
+    query.update(params)
+
+    return urlparse.urlunparse((parts.scheme, parts.netloc,
+                                parts.path, parts.params,
+                                urllib.urlencode(query),
+                                parts.fragment))
