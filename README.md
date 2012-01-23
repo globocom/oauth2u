@@ -57,7 +57,7 @@ If no plugin is registered here the server redirects to `redirect_uri`
 without any specific verification.
 
 There is an example usage on how to build a login window using this plugin
-and `authorization-POST` on [examples folder](https://github.com/igorsobreira/oauth2u/blob/master/examples/server_with_plugin_to_login.py)
+and `authorization-POST` on [examples folder](https://github.com/globocom/oauth2u/blob/master/examples/server_with_plugin_to_login.py)
 
 ##### `authorization-POST`
 
@@ -110,7 +110,7 @@ a list of directories to `Server()` parameter: `handlers_directories`.
 
 # How to contribute
 
-- Create a fork on github: https://github.com/igorsobreira/oauth2u
+- Create a fork on github: https://github.com/globocom/oauth2u
 
 - Install the package for development:
 
@@ -120,7 +120,7 @@ a list of directories to `Server()` parameter: `handlers_directories`.
 
    `$ ./runtests`
 
-- Open an [issue](https://github.com/igorsobreira/oauth2u/issues),
+- Open an [issue](https://github.com/globocom/oauth2u/issues),
   if it doesn't exist yet, assign it to you and commit your changes 
   in your fork. 
 
