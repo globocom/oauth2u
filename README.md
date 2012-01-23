@@ -41,6 +41,9 @@ It's similar to a Template Method pattern, but doesn't require you to extend
 You cannot create new plugins, unless you want to call them yourself. But
 there are some pre-defined plugins called on specific parts of the server.
 
+To let the server load your plugins automatically you can provide
+a list of directories to `Server()` parameter: `plugins_directories`.
+
 ##### `authorization-GET`
 
 - __Parameters__
@@ -87,7 +90,7 @@ Example:
 
 ### New urls handlers
 
-Since the server is written using (tornado web framework)[http://tornadoweb.org], is
+Since the server is written using [tornado web framework](http://tornadoweb.org), is
 natural that you can register new handlers.
 
 Example:
@@ -102,6 +105,8 @@ Example:
 
 Read the tornado docs for more information on Request Handlers
 
+To let the server load your new url handlers automatically you can provide
+a list of directories to `Server()` parameter: `handlers_directories`.
 
 # How to contribute
 
