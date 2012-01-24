@@ -13,7 +13,7 @@ You can also extend the server adding additional urls.
 
 Here is an example on how to start the server:
 
-    from auth2u.server import Server
+    from oauth2u.server import Server
     
     server = Server(port=8080)
     server.start()
