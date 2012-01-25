@@ -1,3 +1,4 @@
+#coding: utf-8
 '''
 This example shows how to use a plugin to ask for client
 login and password.
@@ -70,6 +71,10 @@ def validate_user_credentials(handler):
         handler.write('<p>Invalid username and/or password</p>'
                       '<p><em>hint: try "admin" and "admin"</em></p>'
                       '<p><a href="{0}">Try again</a></p>'.format(handler.request.uri))
+
+@plugins.register('access-token-response')
+def on_access_token_response(handler, response):
+    response['user_name'] = 'Flávio'
 
 
 if __name__ == '__main__':
