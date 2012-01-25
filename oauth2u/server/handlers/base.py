@@ -18,7 +18,7 @@ class BaseRequestHandler(tornado.web.RequestHandler):
 
         error = {'error': 'invalid_request',
                  'error_description': error_description}
-
+                 
         self.raise_http_invalid_argument_error(name, error)
 
     def raise_http_invalid_argument_error(self, parameter, error):
@@ -55,6 +55,8 @@ class BaseRequestHandler(tornado.web.RequestHandler):
         error = tornado.web.HTTPError(status, '')
         error.response_body = response_body
         error.headers = headers or {}
+        log.warning("raise http %s with body %s and headers %s" % (status, response_body,headers))
+        
         raise error
 
     def get_error_html(self, status_code, exception, **kwargs):

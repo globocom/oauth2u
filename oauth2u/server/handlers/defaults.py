@@ -9,6 +9,7 @@ import tornado
 
 from oauth2u.server import database, plugins
 from oauth2u.server.handlers.register import register
+from oauth2u.server.helper.log import log
 import oauth2u.tokens
 
 from .base import BaseRequestHandler
@@ -46,6 +47,9 @@ class AuthorizationHandler(BaseRequestHandler):
         self.redirect_uri = self.require_argument('redirect_uri')
         self.response_type = self.require_argument('response_type', 'code')
         self.client_id = self.require_argument('client_id')
+        log.debug("get /authorize with state=%s, redirect_uri=%s, response_type=%s, client_id=%s" % (
+            self.state, self.redirect_uri, self.response_type, self.client_id 
+        ))
 
     def raise_http_invalid_argument_error(self, parameter, error):
         if parameter == 'redirect_uri':
@@ -114,6 +118,9 @@ class AccessTokenHandler(BaseRequestHandler):
     def validate_headers(self):
         self.require_header('content-type', self.required_content_type)
         self.require_header('authorization', startswith='Basic ')
+        log.debug("post /access-token content-type=%s, authorization=%s" %(
+            self.require_header,self.require_header
+        ))
 
     def load_arguments(self):
         self.require_argument('grant_type', 'authorization_code')

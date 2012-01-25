@@ -5,6 +5,7 @@ import tornado.web
 import tornado.ioloop
 
 from oauth2u.server import handlers, plugins
+from oauth2u.server.helper.log import log
 
 class Server(object):
 
@@ -25,8 +26,10 @@ class Server(object):
         handlers.load_from_directories(*directories)
 
     def start(self):
+        log.debug("starting...")
         self.create_application()
         self.start_ioloop()
+        log.debug("...done")
 
     def create_application(self):
         self.application = tornado.web.Application(self.urls,

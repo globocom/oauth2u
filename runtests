@@ -30,7 +30,7 @@ function run_tests {
 
 function stop_test_server {
 	echo "Stop test server..."
-    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1 | xargs kill -INT
+    ps ax | awk '/servertest.py/ && !/grep/{ print $1 }' | xargs kill -9
 }
 
 if [ -z "$1" ]; then
