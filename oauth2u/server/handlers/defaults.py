@@ -25,6 +25,7 @@ class AuthorizationHandler(BaseRequestHandler):
 
     def initialize(self, **kwargs):
         self.code = None
+        self.state = None
         self.client_id = None
         self.redirect_uri = None
         self.response_type = None
@@ -41,6 +42,7 @@ class AuthorizationHandler(BaseRequestHandler):
             self.raise_http_error(405)
 
     def load_parameters(self):
+        self.state = self.get_argument('state', None)
         self.redirect_uri = self.require_argument('redirect_uri')
         self.response_type = self.require_argument('response_type', 'code')
         self.client_id = self.require_argument('client_id')
@@ -58,7 +60,11 @@ class AuthorizationHandler(BaseRequestHandler):
         '''
         Redirects the user back to ``redirect_uri`` with grant code
         '''
-        params = {'code': code}
+        params = {'code': code }
+        state = database.get_state(client_id,code)
+        if state != None:
+            params['state'] = state
+        
         self.redirect_to_redirect_uri_with_params(params, client_id, code)
     
     def redirect_access_denied(self, client_id, code):
@@ -83,7 +89,8 @@ class AuthorizationHandler(BaseRequestHandler):
         database.save_new_authorization_code(
             self.code,
             self.client_id,
-            redirect_uri=self.redirect_uri)
+            self.state,
+            redirect_uri=self.redirect_uri)    
 
 
 @register(r'/access-token')
