@@ -1,4 +1,5 @@
 import tornado
+from oauth2u.server.helper.log import log
 
 class BaseRequestHandler(tornado.web.RequestHandler):
 
