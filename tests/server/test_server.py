@@ -5,6 +5,8 @@ import mock
 import oauth2u
 import oauth2u.server.log
 
+def teardown_function(func):
+    logging.disable(logging.INFO)
 
 def test_should_have_optional_port():
     server = oauth2u.Server()
