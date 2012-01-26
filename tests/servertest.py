@@ -31,9 +31,11 @@ oauth2u.tokens.generate_access_token = lambda: 'access-token-{0}'.format(str(uui
 if __name__ == '__main__':
     plugins = abspath(join(dirname(__file__), 'server', 'plugins_to_test'))
     handlers = abspath(join(dirname(__file__), 'server', 'handlers_to_test'))
+    logfile = abspath(join(dirname(__file__), 'server.log'))
 
     server = oauth2u.server.Server(port=8888,
                                    plugins_directories=[plugins],
-                                   handlers_directories=[handlers])
+                                   handlers_directories=[handlers],
+                                   log_config={'filename': logfile})
     print 'Listening on 8888'
     server.start()

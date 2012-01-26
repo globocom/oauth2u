@@ -12,7 +12,8 @@ def test_configure_should_call_basicConfig_on_logging_with_default_parameters(mo
     assert 1 == logging_mock.basicConfig.call_count
     logging_mock.basicConfig.assert_called_with(filename='/tmp/log',
                                                 level=log.DEFAULT_LEVEL,
-                                                format=log.DEFAULT_FORMAT)
+                                                format=log.DEFAULT_FORMAT,
+                                                datefmt=log.DEFAULT_DATEFMT)
 
 
 def test_log_functions_are_passed_to_logging_module(monkeypatch):

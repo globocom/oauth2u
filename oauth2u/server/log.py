@@ -1,12 +1,14 @@
 import logging
 
 DEFAULT_LEVEL = logging.INFO
-DEFAULT_FORMAT = '%(asctime)s:%(levelname)s:%(name)s: %(message)s'
+DEFAULT_FORMAT = '%(asctime)s [%(levelname)s] %(message)s'
+DEFAULT_DATEFMT = '%Y-%m-%d %H:%M'
 
 def configure(**kwargs):
     defaults = {
         'level': DEFAULT_LEVEL,
         'format': DEFAULT_FORMAT,
+        'datefmt': '%Y-%m-%d %H:%M',
         }
     defaults.update(kwargs)
     logging.basicConfig(**defaults)
