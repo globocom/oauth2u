@@ -112,17 +112,18 @@ a list of directories to `Server()` parameter: `handlers_directories`.
 
 - Create a fork on github: https://github.com/globocom/oauth2u
 
-- Install the package for development:
+- Install the package for development (preferably
+  using [virtualenv](http://pypi.python.org/pypi/virtualenv)):
 
    `$ pip install -e oauth2u`
 
-- Run tests:
+- Run tests (this command will install test specific dependencies):
 
    `$ ./runtests`
 
 - Open an [issue](https://github.com/globocom/oauth2u/issues),
   if it doesn't exist yet, assign it to you and commit your changes 
-  in your fork. 
+  in your fork.
 
 - Send a pull request
 
