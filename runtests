@@ -30,7 +30,10 @@ function run_tests {
 
 function stop_test_server {
 	echo "Stop test server..."
-    ps ax | grep tests/servertest.py | grep -v grep | cut -d ' ' -f 1 | xargs kill -INT
+    # I kill with SIGINT here because I capture this signal on servertest.py
+    # and die normally there. This way the server saves it's .coverage and
+    # I can combine later (see run_tests)
+    ps ax | awk '/servertest.py/ && !/grep/{ print $1 }' | xargs kill -INT
 }
 
 if [ -z "$1" ]; then
