@@ -15,6 +15,10 @@ from oauth2u.server import plugins
 
 @plugins.register('authorization-GET')
 def on_authorization_GET_to_test(handler):
+    if handler.client_id == 'unauthorized-client':
+        handler.redirect_unauthorized_client(handler.client_id, handler.code)
+        return
+
     handler.set_cookie('client_id', handler.client_id)
     handler.set_cookie('code', handler.code)
 

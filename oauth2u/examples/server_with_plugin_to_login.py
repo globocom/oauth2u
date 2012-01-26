@@ -24,6 +24,10 @@ def ask_user_credentials(handler):
     ``oauth2u.server.database``. You'll need the client id to query.
 
     '''
+    if handler.client_id == 'unauthorized-client':
+        handler.redirect_unauthorized_client(handler.client_id, handler.code)
+        return
+
     # Stores the client_id in a session to be able to access from the
     # authorization-POST plugin. That is because in POST nothing is executed
     # in the default handler, so we need to query the tokens generated on GET

@@ -134,6 +134,16 @@ def test_should_redirect_to_redirect_uri_with_access_denied_from_plugin():
                                  'The resource owner or authorization server denied the request')
 
 
+def test_should_redirect_with_unauthorized_client_error_if_client_id_cant_request_authorization():
+    url = build_authorize_url({'client_id': 'unauthorized-client',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.get(url, allow_redirects=False)
+    assert_error_redirect_params(resp, 'http://callback',
+                                 'unauthorized_client',
+                                 'The client is not authorized to request an authorization code using this method')
+
+
 def test_should_redirect_to_redirect_uri_with_authorization_code_from_plugin():
     http = requests.session()
     url = build_authorize_url({'client_id': 'client-id-verify-access',

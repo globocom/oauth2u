@@ -77,6 +77,13 @@ class AuthorizationHandler(BaseRequestHandler):
             }
         self.redirect_to_redirect_uri_with_params(params, client_id, code)
 
+    def redirect_unauthorized_client(self, client_id, code):
+        params = {
+            'error': 'unauthorized_client',
+            'error_description': 'The client is not authorized to request an authorization code using this method'
+        }
+        self.redirect_to_redirect_uri_with_params(params, client_id, code)
+
     def redirect_to_redirect_uri_with_params(self, params, client_id, code):
         redirect_uri = database.get_redirect_uri(client_id, code)
         url = self.build_redirect_uri(params, redirect_uri)
