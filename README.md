@@ -6,15 +6,15 @@ This project aims to implement the complete
 
 # Server
 
-The first part is a oauth 2.0 server. It provies the endpoints specified 
+The first part is a oauth 2.0 server. It provides the endpoints specified
 by oauth 2.0 specification with possibilities to plug code to customize
-specific behaviours (see plugins bellow). 
+specific behaviours (see plugins bellow).
 You can also extend the server adding additional urls.
 
 Here is an example on how to start the server:
 
     from oauth2u.server import Server
-    
+
     server = Server(port=8080)
     server.start()
 
@@ -49,7 +49,7 @@ a list of directories to `Server()` parameter: `plugins_directories`.
 - __Parameters__
  - `handler`: tornado Request Handler reference
 
-Is called on the Authorization Request handler GET HTTP method, after all 
+Is called on the Authorization Request handler GET HTTP method, after all
 validations are made and the authorization code has already been generated
 and saved on database.
 
@@ -64,7 +64,7 @@ and `authorization-POST` on [examples folder](https://github.com/globocom/oauth2
 - __Parameters__
  - `handler`: tornado Request Handler reference
 
-Is called on the Authorization Request handler POST HTTP method. There is 
+Is called on the Authorization Request handler POST HTTP method. There is
 not default behaviour, if no plugins is registered a `405` status code response is
 generated
 
@@ -81,7 +81,7 @@ The plugin callback can edit the response dict adding, removing or editing keys.
 Just be careful to don't remove [required OAuth 2.0 parameters](http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-4.1.4)
 
 Example:
-        
+
         @plugins.register('access-token-response')
         def customize_response(handler, response):
             response.pop('expires_in')   # it's optional, and I don't want it...
@@ -122,11 +122,11 @@ a list of directories to `Server()` parameter: `handlers_directories`.
    `$ ./runtests`
 
 - Open an [issue](https://github.com/globocom/oauth2u/issues),
-  if it doesn't exist yet, assign it to you and commit your changes 
+  if it doesn't exist yet, assign it to you and commit your changes
   in your fork.
 
 - Send a pull request
 
-- Your commits must have tests, we have 100% coverage, so any code without 
-  tests is not welcome :).
+- Your commits must have tests, we have 100% coverage, so any code without
+  tests is aren't welcome :).
   If your changes modifies API or adds a new feature, you must update the docs too
