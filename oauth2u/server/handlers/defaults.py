@@ -107,6 +107,13 @@ class AuthorizationHandler(BaseRequestHandler):
             }
         self.redirect_to_redirect_uri_with_params(params, client_id, code)
 
+    def redirect_invalid_scope(self, client_id, code):
+        params = {
+            'error': 'invalid_scope',
+            'error_description': 'The requested scope is invalid, unknown, or malformed'
+            }
+        self.redirect_to_redirect_uri_with_params(params, client_id, code)
+
     def redirect_to_redirect_uri_with_params(self, params, client_id, code):
         redirect_uri = database.get_redirect_uri(client_id, code)
         url = self.build_redirect_uri(params, redirect_uri)

@@ -150,6 +150,15 @@ def test_should_redirect_with_server_error_error():
                                  'server_error',
                                  'The authorization server encountered an unexpected condition which prevented it from fulfilling the request')
 
+def test_should_redirect_with_invalid_scope_error():
+    url = build_authorize_url({'client_id': 'invalid_scope',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.get(url, allow_redirects=False)
+    assert_error_redirect_params(resp, 'http://callback',
+                                 'invalid_scope',
+                                 'The requested scope is invalid, unknown, or malformed')
+
 
 def test_should_redirect_to_redirect_uri_with_authorization_code_from_plugin():
     http = requests.session()
