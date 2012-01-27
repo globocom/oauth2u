@@ -14,13 +14,13 @@ from oauth2u.server import Server, plugins, database
 @plugins.register('authorization-GET')
 def ask_user_credentials(handler):
     '''
-    This plugin will execute in the end of the authorization request.
-    All validation will already be executed.
-    
+    This plugin will be executed in the end of the authorization request
+    after all validation steps.
+
     ``handler`` is the tornado's RequestHandler instance. It's possible to
     fetch the client_id in ``handler.client_id``.
 
-    Note that the tokens have already been generated and stored on 
+    Note that the tokens have already been generated and stored on
     ``oauth2u.server.database``. You'll need the client id to query.
 
     '''
@@ -48,12 +48,12 @@ def ask_user_credentials(handler):
 @plugins.register('authorization-POST')
 def validate_user_credentials(handler):
     '''
-    This plugin will execute in the authorization request handler, but on POST
+    This plugin will be executed in the authorization request handler on POST
     method.
 
-    Different from GET method, no code is executed in the default handler. So
-    why we use ``client_id`` (stored on cookie by ``ask_user_credentials() above``)
-    to query tokens from database (saved on GET handler)
+    Different from GET method, no code is executed in the default handler. That's
+    why we use ``client_id`` (stored on cookie by ``ask_user_credentials()`` above)
+    to query tokens from database (saved on GET handler).
 
     '''
     client_id = handler.get_secure_cookie('client_id')
