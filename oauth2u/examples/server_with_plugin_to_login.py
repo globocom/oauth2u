@@ -85,7 +85,4 @@ if __name__ == '__main__':
     PORT = 8888
 
     s = Server(port=PORT)
-    print '\n => Listening on ' + str(PORT)
-    print '  - Authorization request endpoint: http://localhost:{0}/authorize'.format(PORT)
-    print '  - Access token request endpoing: http://localhost:{0}/access-token'.format(PORT)
     s.start()

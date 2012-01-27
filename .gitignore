@@ -4,3 +4,4 @@ tests/server.log
 oauth2u.egg-info
 .coverage
 *.swp
+tests/server_output.log
