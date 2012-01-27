@@ -32,15 +32,17 @@ class AuthorizationHandler(BaseRequestHandler):
     
     '''
 
+    supported_response_types = ['code']
+
     def initialize(self, **kwargs):
         self.code = None
         self.state = None
         self.client_id = None
         self.redirect_uri = None
-        self.response_type = None
 
     def get(self):
         self.load_parameters()
+        self.verify_response_type()
         self.create_authorization_token()
         self.save_client_tokens()
         if not plugins.call('authorization-GET', self):
@@ -50,10 +52,18 @@ class AuthorizationHandler(BaseRequestHandler):
         if not plugins.call('authorization-POST', self):
             self.raise_http_error(405)
 
+    def verify_response_type(self):
+        value = self.require_argument('response_type')
+        if value not in self.supported_response_types:
+            error = {
+                'error': 'unsupported_response_type',
+                'error_description': 'Supported response_type: code'
+                }
+            self.raise_http_invalid_argument_error('response_type', error)
+
     def load_parameters(self):
         self.state = self.get_argument('state', None)
         self.redirect_uri = self.require_argument('redirect_uri')
-        self.response_type = self.require_argument('response_type', 'code')
         self.client_id = self.require_argument('client_id')
 
     def raise_http_invalid_argument_error(self, parameter, error):

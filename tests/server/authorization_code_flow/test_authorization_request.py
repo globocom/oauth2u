@@ -43,26 +43,28 @@ def test_should_require_redirect_uri_parameter():
     assert expected_body == body
 
 
-def test_should_require_response_type_parameter():
+def test_should_require_client_id_parameter():
     url = build_authorize_url({'redirect_uri': 'http://callback/return'})
+    assert_required_redirect_parameter(url, 'http://callback/return',
+                                           'client_id')
+
+
+def test_should_require_response_type_parameter():
+    url = build_authorize_url({'redirect_uri': 'http://callback/return',
+                               'client_id': 'client-id'})
     assert_required_redirect_parameter(url, 'http://callback/return',
                                        'response_type')
 
 
 def test_should_require_response_type_parameter_to_be_code():
     url = build_authorize_url({'redirect_uri': 'http://callback/return',
+                               'client_id': 'cliend-id',
                                'response_type': 'invalid'})
-    expected_params = {'error': 'invalid_request',
-                       'error_description': 'Parameter response_type should be code'}
+    expected_params = {'error': 'unsupported_response_type',
+                       'error_description': 'Supported response_type: code'}
     assert_redirect_parameters(url, 'http://callback/return',
                                expected_params)
 
-
-def test_should_require_client_id_parameter():
-    url = build_authorize_url({'redirect_uri': 'http://callback/return',
-                               'response_type': 'code'})
-    assert_required_redirect_parameter(url, 'http://callback/return',
-                                           'client_id')
 
 # check Location header
 
