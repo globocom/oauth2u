@@ -20,6 +20,15 @@ class AuthorizationHandler(BaseRequestHandler):
     '''
     Handler for the Authorization Request defined in
     http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-4.1.1
+
+    The default behaviour is to redirect with access token without
+    any verification.
+    This can (and should) be customized via plugins.
+
+    On errors, GET parameters (`error', `error_description') are provided
+    with more information on redirect to `redirect_uri'.
+    Unless the error is an invalid/missing `redirect_uri', in this case
+    a 400 status code is raises with error information on body.
     
     '''
 
