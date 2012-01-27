@@ -21,6 +21,9 @@ def on_authorization_GET_to_test(handler):
     if handler.client_id == 'temporarily_unavailable':
         handler.redirect_temporarily_unavailable(handler.client_id, handler.code)
         return
+    if handler.client_id == 'server_error':
+        handler.redirect_server_error(handler.client_id, handler.code)
+        return
 
     handler.set_cookie('client_id', handler.client_id)
     handler.set_cookie('code', handler.code)

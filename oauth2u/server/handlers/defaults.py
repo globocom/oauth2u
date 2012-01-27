@@ -100,6 +100,13 @@ class AuthorizationHandler(BaseRequestHandler):
             }
         self.redirect_to_redirect_uri_with_params(params, client_id, code)
 
+    def redirect_server_error(self, client_id, code):
+        params = {
+            'error': 'server_error',
+            'error_description': 'The authorization server encountered an unexpected condition which prevented it from fulfilling the request',
+            }
+        self.redirect_to_redirect_uri_with_params(params, client_id, code)
+
     def redirect_to_redirect_uri_with_params(self, params, client_id, code):
         redirect_uri = database.get_redirect_uri(client_id, code)
         url = self.build_redirect_uri(params, redirect_uri)
