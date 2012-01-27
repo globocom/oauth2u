@@ -132,6 +132,16 @@ def test_should_redirect_with_unauthorized_client_error_if_client_id_cant_reques
                                  'The client is not authorized to request an authorization code using this method')
 
 
+def test_should_redirect_with_temporarily_unavailable_client_error():
+    url = build_authorize_url({'client_id': 'temporarily_unavailable',
+                               'response_type': 'code',
+                               'redirect_uri': 'http://callback'})
+    resp = requests.get(url, allow_redirects=False)
+    assert_error_redirect_params(resp, 'http://callback',
+                                 'temporarily_unavailable',
+                                 'The authorization server is currently unable to handle the request')
+
+
 def test_should_redirect_to_redirect_uri_with_authorization_code_from_plugin():
     http = requests.session()
     url = build_authorize_url({'client_id': 'client-id-verify-access',

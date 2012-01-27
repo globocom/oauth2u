@@ -93,6 +93,13 @@ class AuthorizationHandler(BaseRequestHandler):
         }
         self.redirect_to_redirect_uri_with_params(params, client_id, code)
 
+    def redirect_temporarily_unavailable(self, client_id, code):
+        params = {
+            'error': 'temporarily_unavailable',
+            'error_description': 'The authorization server is currently unable to handle the request'
+            }
+        self.redirect_to_redirect_uri_with_params(params, client_id, code)
+
     def redirect_to_redirect_uri_with_params(self, params, client_id, code):
         redirect_uri = database.get_redirect_uri(client_id, code)
         url = self.build_redirect_uri(params, redirect_uri)
