@@ -21,6 +21,10 @@ def register(name):
         return function
     return decorator
 
+authorization_GET = register('authorization-GET')
+authorization_POST = register('authorization-POST')
+access_token_response = register('access-token-response')
+access_token_validation = register('access-token-validation')
 
 def find(name):
     if name not in PLUGINS:
