@@ -13,10 +13,10 @@ def teardown_function(func):
     plugins.unregister_all()
 
 
-def test_should_register_plugins():    
+def test_should_register_plugins():
     assert_no_plugin_for('authorization-GET')
-    
-    @plugins.register('authorization-GET')
+
+    @plugins.authorization_GET
     def on_authorization_GET(handler):
         handler.write('do nothing')
 
@@ -28,24 +28,24 @@ def test_should_raise_InvalidPlugin_if_trying_to_register_on_non_existent_plugin
         @plugins.register('NON-EXISTENT-PLUGIN')
         def on_authorization_GET(handler):
             handler.write('do nothing')
-    
+
     assert "Plugin name 'NON-EXISTENT-PLUGIN' is invalid" in str(error)
 
 
 def test_should_override_existing_plugin_if_new_register():
-    @plugins.register('authorization-GET')
+    @plugins.authorization_GET
     def on_authorization_GET(handler):
         handler.write('do nothing')
 
-    @plugins.register('authorization-GET')
+    @plugins.authorization_GET
     def new_on_authorization_GET(handler):
         handler.write('no a bit more...')
-    
+
     assert_plugin_is('authorization-GET', new_on_authorization_GET)
 
 
 def test_should_find_plugin_by_name():
-    @plugins.register('authorization-GET')
+    @plugins.authorization_GET
     def on_authorization_GET(handler):
         handler.write('do nothing')
 
@@ -87,21 +87,21 @@ def test_call_should_let_InvalidPlugin_exception_to_be_raised():
 
 def test_call_should_return_True_if_plugin_called():
     called = []
-    @plugins.register('authorization-GET')
+    @plugins.authorization_GET
     def on_authorization_GET(handler):
         called.append(handler)
-    
+
     assert plugins.call('authorization-GET', "handler") is True
     assert ["handler"] == called
 
 
 def test_call_should_return_False_if_plugin_raises_IgnorePlugin():
     called = []
-    @plugins.register('authorization-GET')
+    @plugins.authorization_GET
     def on_authorization_GET(handler):
         called.append(handler)
         raise plugins.IgnorePlugin()
-    
+
     assert plugins.call('authorization-GET', "handler") is False
     assert ["handler"] == called
 

@@ -11,7 +11,7 @@ implementing plugins like these bellow
 
 from oauth2u.server import Server, plugins, database
 
-@plugins.register('authorization-GET')
+@plugins.authorization_GET
 def ask_user_credentials(handler):
     '''
     This plugin will be executed in the end of the authorization request
@@ -45,7 +45,7 @@ def ask_user_credentials(handler):
                   '<button type="submit">Allow</button>'.format(handler.client_id))
 
 
-@plugins.register('authorization-POST')
+@plugins.authorization_POST
 def validate_user_credentials(handler):
     '''
     This plugin will be executed in the authorization request handler on POST
@@ -76,7 +76,7 @@ def validate_user_credentials(handler):
                       '<p><em>hint: try "admin" and "admin"</em></p>'
                       '<p><a href="{0}">Try again</a></p>'.format(handler.request.uri))
 
-@plugins.register('access-token-response')
+@plugins.access_token_response
 def on_access_token_response(handler, response):
     response['user_name'] = 'Flávio'
 

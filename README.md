@@ -44,7 +44,7 @@ there are some pre-defined plugins called on specific parts of the server.
 To let the server load your plugins automatically you can provide
 a list of directories to `Server()` parameter: `plugins_directories`.
 
-##### `authorization-GET`
+##### `authorization_GET`
 
 - __Parameters__
  - `handler`: tornado Request Handler reference
@@ -59,7 +59,7 @@ without any specific verification.
 There is an example usage on how to build a login window using this plugin
 and `authorization-POST` on [examples folder](https://github.com/globocom/oauth2u/blob/master/examples/server_with_plugin_to_login.py)
 
-##### `authorization-POST`
+##### `authorization_POST`
 
 - __Parameters__
  - `handler`: tornado Request Handler reference
@@ -68,7 +68,7 @@ Is called on the Authorization Request handler POST HTTP method. There is
 not default behaviour, if no plugins is registered a `405` status code response is
 generated
 
-##### `access-token-response`
+##### `access_token_response`
 
 - __Parameters__
  - `handler`: tornado Request Handler reference
@@ -82,7 +82,7 @@ Just be careful to don't remove [required OAuth 2.0 parameters](http://tools.iet
 
 Example:
 
-        @plugins.register('access-token-response')
+        @plugins.access_token_response
         def customize_response(handler, response):
             response.pop('expires_in')   # it's optional, and I don't want it...
             response['user_name'] = 'Bob'
