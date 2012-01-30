@@ -200,6 +200,8 @@ class AccessTokenHandler(BaseRequestHandler):
             self.raise_http_400({'error': 'invalid_grant',
                                  'error_description': 'Authorization grant already used'})
 
+        plugins.call('access-token-validation', self)
+
     def mark_client_authorization_code_as_used(self):
         database.mark_client_authorization_code_as_used(self.client_id, self.code)
 

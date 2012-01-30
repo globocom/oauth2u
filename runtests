@@ -12,7 +12,7 @@ function install_test_deps {
 function start_test_server {
     echo "Starting test server. Log: tests/server.log"
     rm -f tests/server.log
-    coverage run -p tests/servertest.py >tests/server_output.log 2>&1 &
+    PYTHONPATH=. coverage run -p tests/servertest.py >tests/server_output.log 2>&1 &
 }
 
 function run_tests {

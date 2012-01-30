@@ -68,3 +68,9 @@ def on_authorization_POST_to_test(handler):
 def on_access_token_response(handler, response):
     if handler.client_id == 'client-id-from-access-token-tests':
         response['user_name'] = 'Igor Sobreira'
+
+@plugins.register('access-token-validation')
+def on_access_token_validation(handler):
+    if handler.client_id == 'rejected-client-id':
+        handler.raise_http_400({'error': 'invalid_request',
+                                'error_description': 'My plugin rejected your request'})

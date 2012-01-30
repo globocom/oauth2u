@@ -10,6 +10,7 @@ PLUGINS = {
     'authorization-GET': None,
     'authorization-POST': None,
     'access-token-response': None,
+    'access-token-validation': None,
 }
 
 def register(name):

@@ -271,3 +271,22 @@ def test_should_allow_json_response_customization_via_plugin():
 
     assert 200 == response.status_code
     assert 'Igor Sobreira' == body.get('user_name','')
+
+def test_should_allow_custom_validation_via_plugin():
+    client_id = 'rejected-client-id'
+    code = request_authorization_code(client_id)
+    data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': 'http://callback'
+        }
+    valid_headers = {
+        'Content-Type': CONTENT_TYPE,
+        'Authorization': build_basic_authorization_header(client_id, code)
+        }
+    response = requests.post(URL, data=data, headers=valid_headers)
+
+    assert_error_response_body(response,
+                          'invalid_request',
+                          'My plugin rejected your request')
+
