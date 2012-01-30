@@ -67,7 +67,7 @@ class AuthorizationHandler(BaseRequestHandler):
         self.client_id = self.require_argument('client_id')
 
     def raise_http_invalid_argument_error(self, parameter, error):
-        if parameter == 'redirect_uri':
+        if parameter in ['redirect_uri', 'client_id']:
             self.raise_http_400(error)
         else:
             self.raise_http_302(error)

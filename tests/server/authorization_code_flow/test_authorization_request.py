@@ -33,20 +33,13 @@ def test_should_redirect_to_redirect_uri_argument_passing_auth_token_and_state_a
 def test_should_require_redirect_uri_parameter():
     # if redirect_uri is not provided I can't redirect with GET
     # parameters, then just return 400 and a body with json
-    url = build_authorize_url({})
-    resp = requests.get(url, allow_redirects=False)
-    body = parse_json_response(resp)
-    expected_body = {'error': 'invalid_request',
-                     'error_description': 'Parameter redirect_uri is required'}
-
-    assert 400 == resp.status_code
-    assert expected_body == body
+    url = build_authorize_url({'client_id': 'client-id'})
+    assert_bad_request_for_required_parameter(url, 'redirect_uri')
 
 
 def test_should_require_client_id_parameter():
     url = build_authorize_url({'redirect_uri': 'http://callback/return'})
-    assert_required_redirect_parameter(url, 'http://callback/return',
-                                           'client_id')
+    assert_bad_request_for_required_parameter(url, 'client_id')
 
 
 def test_should_require_response_type_parameter():
@@ -179,6 +172,14 @@ def test_should_redirect_to_redirect_uri_with_authorization_code_from_plugin():
 
 
 # custom asserts
+def assert_bad_request_for_required_parameter(url, missing_parameter):
+    resp = requests.get(url, allow_redirects=False)
+    body = parse_json_response(resp)
+    expected_body = {'error': 'invalid_request',
+                     'error_description': 'Parameter %s is required' % missing_parameter}
+
+    assert 400 == resp.status_code
+    assert expected_body == body
 
 def assert_required_redirect_parameter(url, redirect_uri, parameter):
     expected_params = {
