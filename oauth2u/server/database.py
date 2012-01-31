@@ -4,8 +4,11 @@ class MemoryDataBase(object):
     def find_client(self, client_id):
         return self.DATABASE.get(client_id)
 
-    def save_new_authorization_code(self, auth_code, client_id, state, redirect_uri):
+    def save_new_client(self, client_id, default_redirect_uri):
         self.DATABASE.setdefault(client_id, {})
+        self.DATABASE[client_id]['default_redirect_uri'] = default_redirect_uri
+
+    def save_new_authorization_code(self, auth_code, client_id, state, redirect_uri):
         auth_code_info = {
             'redirect_uri': redirect_uri,'state':state
             }
