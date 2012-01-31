@@ -59,6 +59,8 @@ def validate_user_credentials(handler):
     client_id = handler.get_secure_cookie('client_id')
     code = handler.get_secure_cookie('code')
 
+    database = handler.application.database
+
     credentials = (handler.get_argument('username',''),
                    handler.get_argument('password',''))
 
@@ -84,5 +86,9 @@ def on_access_token_response(handler, response):
 if __name__ == '__main__':
     PORT = 8888
 
-    s = Server(port=PORT)
+    db = database.MemoryDataBase()
+    db.save_new_client('authorized-client', None)
+    db.save_new_client('client-with-redirect-uri', 'http://example.com/return')
+
+    s = Server(port=PORT, database=db)
     s.start()
