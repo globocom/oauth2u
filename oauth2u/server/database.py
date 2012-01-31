@@ -7,6 +7,7 @@ class MemoryDataBase(object):
     def save_new_client(self, client_id, default_redirect_uri):
         self.DATABASE.setdefault(client_id, {})
         self.DATABASE[client_id]['default_redirect_uri'] = default_redirect_uri
+        self.DATABASE[client_id].setdefault('authorization_codes', {})
 
     def save_new_authorization_code(self, auth_code, client_id, state, redirect_uri):
         auth_code_info = {

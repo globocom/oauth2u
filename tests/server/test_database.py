@@ -15,6 +15,11 @@ def test_should_save_and_retrieve_client_id():
     assert client['default_redirect_uri'] == callback_uri
 
 
+def test_newly_created_client_has_no_authorization_codes():
+    database.save_new_client('client-id', 'http://example.com/callback')
+    assert 0 == database.client_authorization_codes_count('client-id')
+
+
 def test_should_save_and_retrieve_client_authorization_code():
     database.save_new_authorization_code(
         'auth-code-1nmb21', 'client-id', 'my-state',
