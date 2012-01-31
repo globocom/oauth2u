@@ -56,11 +56,12 @@ class BaseRequestHandler(tornado.web.RequestHandler):
         error.headers = headers or {}
         raise error
 
-    def get_error_html(self, status_code, exception, **kwargs):
+    def get_error_html(self, status_code, **kwargs):
         ''' Called by tornado to fill error response body '''
-        if exception.response_body:
+        exception = kwargs.pop('exception', None)
+        if hasattr(exception, 'response_body') and exception.response_body:
             self.write(exception.response_body)
 
-        for name, value in exception.headers.items():
-            self.set_header(name, value)
-
+        if hasattr(exception, 'headers'):
+            for name, value in exception.headers.items():
+                self.set_header(name, value)

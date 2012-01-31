@@ -68,6 +68,11 @@ def test_add_query_to_url_should_add_more_query_params_to_url():
     assert 'http://www.example.com/path?foo=bar&name=value' == result
 
 
+def test_should_return_500_for_error():
+    resp = requests.get(build_root_url('/test/faulty-url'))
+    assert 500 == resp.status_code
+
+
 # custom asserts
 
 def assert_no_url_handler_for(url):
