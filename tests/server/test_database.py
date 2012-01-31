@@ -1,5 +1,7 @@
 import datetime
-from oauth2u.server import database
+from oauth2u.server.database import MemoryDataBase
+
+database = MemoryDataBase()
 
 def test_find_client_return_None_if_no_client_id_found():
     assert database.find_client('no-client-id') is None
@@ -49,5 +51,3 @@ def test_should_get_state_given_client_id_and_authorization_code():
         'http://example.com/return')
     state = database.get_state('client-id', 'auth-code')
     assert 'my-state' == state
-
-

@@ -7,7 +7,7 @@ import re
 
 import tornado
 
-from oauth2u.server import database, plugins
+from oauth2u.server import plugins
 from oauth2u.server.handlers.register import register
 import oauth2u.tokens
 
@@ -80,7 +80,7 @@ class AuthorizationHandler(BaseRequestHandler):
         Redirects the user back to ``redirect_uri`` with grant code
         '''
         params = {'code': code }
-        state = database.get_state(client_id,code)
+        state = self.application.database.get_state(client_id,code)
         if state != None:
             params['state'] = state
         
@@ -125,7 +125,7 @@ class AuthorizationHandler(BaseRequestHandler):
         self.redirect_to_redirect_uri_with_params(params, client_id, code)
 
     def redirect_to_redirect_uri_with_params(self, params, client_id, code):
-        redirect_uri = database.get_redirect_uri(client_id, code)
+        redirect_uri = self.application.database.get_redirect_uri(client_id, code)
         url = self.build_redirect_uri(params, redirect_uri)
         self.redirect(url)
 
@@ -133,7 +133,7 @@ class AuthorizationHandler(BaseRequestHandler):
         return add_query_to_url(base_url or self.redirect_uri, params)
 
     def save_client_tokens(self):
-        database.save_new_authorization_code(
+        self.application.database.save_new_authorization_code(
             self.code,
             self.client_id,
             self.state,
@@ -178,6 +178,7 @@ class AccessTokenHandler(BaseRequestHandler):
         self.client_id, self.code_from_header = digest.split(':')
 
     def validate_client_authorization(self):
+        database = self.application.database
         client = database.find_client(self.client_id)
 
         if not client:
@@ -203,7 +204,7 @@ class AccessTokenHandler(BaseRequestHandler):
         plugins.call('access-token-validation', self)
 
     def mark_client_authorization_code_as_used(self):
-        database.mark_client_authorization_code_as_used(self.client_id, self.code)
+        self.application.database.mark_client_authorization_code_as_used(self.client_id, self.code)
 
     def build_response(self):
         response = {

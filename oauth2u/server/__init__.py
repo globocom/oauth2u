@@ -4,14 +4,16 @@ import urllib
 import tornado.web
 import tornado.ioloop
 
-from oauth2u.server import handlers, plugins, log
+from oauth2u.server import handlers, log, plugins
+from oauth2u.server.database import MemoryDataBase
 
 class Server(object):
 
     def __init__(self, port=8000, plugins_directories=(), handlers_directories=(),
-                 log_config=None):
+                 log_config=None, database=None):
         self.port = port
         self.application = None
+        self.database = database or MemoryDataBase()
         self.load_plugins(plugins_directories)
         self.load_handlers(handlers_directories)
         log.configure(**log_config or {})
@@ -33,6 +35,7 @@ class Server(object):
     def create_application(self):
         self.application = tornado.web.Application(self.urls,
                                                    **self.application_settings)
+        self.application.database = self.database
         self.application.listen(self.port)
     
     @property
