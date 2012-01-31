@@ -65,6 +65,9 @@ class AuthorizationHandler(BaseRequestHandler):
         self.state = self.get_argument('state', None)
         self.redirect_uri = self.require_argument('redirect_uri')
         self.client_id = self.require_argument('client_id')
+        if not self.application.database.find_client(self.client_id):
+            self.raise_http_401({'error': 'invalid_client',
+                                 'error_description': 'Invalid client_id or code on Authorization header'})
 
     def raise_http_invalid_argument_error(self, parameter, error):
         if parameter in ['redirect_uri', 'client_id']:

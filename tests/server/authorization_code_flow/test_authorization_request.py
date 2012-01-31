@@ -42,6 +42,18 @@ def test_should_require_client_id_parameter():
     assert_bad_request_for_required_parameter(url, 'client_id')
 
 
+def test_should_return_401_with_unregistered_client_id():
+    url = build_authorize_url({'client_id': 'unregistered-client-id',
+                               'redirect_uri': 'http://callback/return'})
+    resp = requests.get(url, allow_redirects=False)
+    body = parse_json_response(resp)
+    expected_body = {'error': 'invalid_client',
+                     'error_description': 'Invalid client_id or code on Authorization header'}
+
+    assert 401 == resp.status_code
+    assert expected_body == body
+
+
 def test_should_require_response_type_parameter():
     url = build_authorize_url({'redirect_uri': 'http://callback/return',
                                'client_id': 'client-id'})
@@ -51,7 +63,7 @@ def test_should_require_response_type_parameter():
 
 def test_should_require_response_type_parameter_to_be_code():
     url = build_authorize_url({'redirect_uri': 'http://callback/return',
-                               'client_id': 'cliend-id',
+                               'client_id': 'client-id',
                                'response_type': 'invalid'})
     expected_params = {'error': 'unsupported_response_type',
                        'error_description': 'Supported response_type: code'}
