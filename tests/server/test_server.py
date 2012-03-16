@@ -36,3 +36,9 @@ def test_should_override_default_log_parameters(monkeypatch):
 
     assert 1 == log_mock.configure.call_count
     log_mock.configure.assert_called_with(format='%(message)s')
+
+def test_should_allow_to_application_settings():
+    server = oauth2u.Server(application_settings={'static_path': '/foo/bar'})
+
+    assert 'static_path' in server.application_settings
+
